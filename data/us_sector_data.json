@@ -1,0 +1,1085 @@
+{
+  "date": "2026-05-03",
+  "sectors": [
+    {
+      "name": "信息技术",
+      "amount": 174150988439.96,
+      "stock_count": 32,
+      "avg_change": 2.09,
+      "rise": 25,
+      "fall": 7,
+      "top_stocks": [
+        {
+          "code": "TSLA",
+          "name": "特斯拉",
+          "price": 390.82,
+          "volume": 65338257.0,
+          "amount": 25535497600.739998,
+          "change_pct": 2.41
+        },
+        {
+          "code": "NVDA",
+          "name": "英伟达",
+          "price": 198.45,
+          "volume": 128646996.0,
+          "amount": 25529996356.199997,
+          "change_pct": -0.56
+        },
+        {
+          "code": "AAPL",
+          "name": "苹果",
+          "price": 280.14,
+          "volume": 79915442.0,
+          "amount": 22387511921.879997,
+          "change_pct": 3.24
+        },
+        {
+          "code": "INTC",
+          "name": "英特尔",
+          "price": 99.62,
+          "volume": 158502811.0,
+          "amount": 15790050031.820002,
+          "change_pct": 5.44
+        },
+        {
+          "code": "META",
+          "name": "Meta Platforms Inc-A",
+          "price": 608.745,
+          "volume": 21404028.0,
+          "amount": 13029595024.86,
+          "change_pct": -0.52
+        },
+        {
+          "code": "MSFT",
+          "name": "微软",
+          "price": 414.44,
+          "volume": 31372361.0,
+          "amount": 13001961292.84,
+          "change_pct": 1.63
+        },
+        {
+          "code": "AMD",
+          "name": "超威半导体",
+          "price": 360.54,
+          "volume": 34279169.0,
+          "amount": 12359011591.26,
+          "change_pct": 1.71
+        },
+        {
+          "code": "GOOGL",
+          "name": "谷歌-A",
+          "price": 385.69,
+          "volume": 30105226.0,
+          "amount": 11611284615.94,
+          "change_pct": 0.23
+        },
+        {
+          "code": "AVGO",
+          "name": "博通",
+          "price": 421.28,
+          "volume": 11882589.0,
+          "amount": 5005897093.92,
+          "change_pct": 0.92
+        },
+        {
+          "code": "ORCL",
+          "name": "甲骨文",
+          "price": 171.83,
+          "volume": 26318017.0,
+          "amount": 4522224861.110001,
+          "change_pct": 6.47
+        }
+      ]
+    },
+    {
+      "name": "可选消费品",
+      "amount": 48973146531.30998,
+      "stock_count": 20,
+      "avg_change": -0.7,
+      "rise": 9,
+      "fall": 11,
+      "top_stocks": [
+        {
+          "code": "TSLA",
+          "name": "特斯拉",
+          "price": 390.82,
+          "volume": 65338257.0,
+          "amount": 25535497600.739998,
+          "change_pct": 2.41
+        },
+        {
+          "code": "AMZN",
+          "name": "亚马逊",
+          "price": 268.26,
+          "volume": 50825231.0,
+          "amount": 13634376468.06,
+          "change_pct": 1.21
+        },
+        {
+          "code": "EBAY",
+          "name": "易趣",
+          "price": 104.07,
+          "volume": 12485851.0,
+          "amount": 1299402513.57,
+          "change_pct": 0.57
+        },
+        {
+          "code": "HD",
+          "name": "家得宝",
+          "price": 323.88,
+          "volume": 3865293.0,
+          "amount": 1251891096.84,
+          "change_pct": -1.5
+        },
+        {
+          "code": "MCD",
+          "name": "麦当劳",
+          "price": 286.64,
+          "volume": 3761818.0,
+          "amount": 1078287511.52,
+          "change_pct": -2.37
+        },
+        {
+          "code": "BKNG",
+          "name": "Booking Holdings",
+          "price": 169.63,
+          "volume": 5444251.0,
+          "amount": 923508297.13,
+          "change_pct": 0.75
+        },
+        {
+          "code": "RIVN",
+          "name": "Rivian Automotive Inc-A",
+          "price": 15.02,
+          "volume": 53434741.0,
+          "amount": 802589809.8199999,
+          "change_pct": -8.41
+        },
+        {
+          "code": "SBUX",
+          "name": "星巴克",
+          "price": 105.9,
+          "volume": 6362296.0,
+          "amount": 673767146.4000001,
+          "change_pct": 0.54
+        },
+        {
+          "code": "F",
+          "name": "福特汽车",
+          "price": 11.88,
+          "volume": 52880467.0,
+          "amount": 628219947.96,
+          "change_pct": -1.66
+        },
+        {
+          "code": "GM",
+          "name": "通用汽车",
+          "price": 75.77,
+          "volume": 7161856.0,
+          "amount": 542653829.12,
+          "change_pct": -1.46
+        }
+      ]
+    },
+    {
+      "name": "通信服务",
+      "amount": 33679416546.140007,
+      "stock_count": 14,
+      "avg_change": 0.05,
+      "rise": 6,
+      "fall": 8,
+      "top_stocks": [
+        {
+          "code": "META",
+          "name": "Meta Platforms Inc-A",
+          "price": 608.745,
+          "volume": 21404028.0,
+          "amount": 13029595024.86,
+          "change_pct": -0.52
+        },
+        {
+          "code": "GOOGL",
+          "name": "谷歌-A",
+          "price": 385.69,
+          "volume": 30105226.0,
+          "amount": 11611284615.94,
+          "change_pct": 0.23
+        },
+        {
+          "code": "NFLX",
+          "name": "奈飞",
+          "price": 92.06,
+          "volume": 30406881.0,
+          "amount": 2799257464.86,
+          "change_pct": -1.66
+        },
+        {
+          "code": "VZ",
+          "name": "威瑞森通讯",
+          "price": 48.11,
+          "volume": 24123034.0,
+          "amount": 1160559165.74,
+          "change_pct": 0.17
+        },
+        {
+          "code": "T",
+          "name": "美国电话电报",
+          "price": 26.12,
+          "volume": 31493657.0,
+          "amount": 822614320.84,
+          "change_pct": -0.04
+        },
+        {
+          "code": "CMCSA",
+          "name": "康卡斯特",
+          "price": 27.19,
+          "volume": 28829257.0,
+          "amount": 783867497.83,
+          "change_pct": 0.55
+        },
+        {
+          "code": "CHTR",
+          "name": "特许通讯",
+          "price": 171.74,
+          "volume": 4041988.0,
+          "amount": 694171019.12,
+          "change_pct": 3.98
+        },
+        {
+          "code": "TMUS",
+          "name": "T-Mobile US Inc",
+          "price": 196.06,
+          "volume": 3451426.0,
+          "amount": 676686581.5600001,
+          "change_pct": 0.29
+        },
+        {
+          "code": "SPOT",
+          "name": "Spotify Technology SA",
+          "price": 441.51,
+          "volume": 1438396.0,
+          "amount": 635066217.96,
+          "change_pct": -1.13
+        },
+        {
+          "code": "DIS",
+          "name": "迪士尼",
+          "price": 103.08,
+          "volume": 5956945.0,
+          "amount": 614041890.6,
+          "change_pct": -0.65
+        }
+      ]
+    },
+    {
+      "name": "医疗保健",
+      "amount": 19310880390.76,
+      "stock_count": 19,
+      "avg_change": -1.09,
+      "rise": 5,
+      "fall": 14,
+      "top_stocks": [
+        {
+          "code": "LLY",
+          "name": "礼来",
+          "price": 963.33,
+          "volume": 4352441.0,
+          "amount": 4192836988.53,
+          "change_pct": 3.07
+        },
+        {
+          "code": "UNH",
+          "name": "联合健康",
+          "price": 368.78,
+          "volume": 4945442.0,
+          "amount": 1823780100.7599998,
+          "change_pct": -0.46
+        },
+        {
+          "code": "JNJ",
+          "name": "强生",
+          "price": 227.19,
+          "volume": 6863587.0,
+          "amount": 1559338330.53,
+          "change_pct": -1.16
+        },
+        {
+          "code": "MRK",
+          "name": "默沙东",
+          "price": 112.16,
+          "volume": 11953717.0,
+          "amount": 1340728898.72,
+          "change_pct": 2.73
+        },
+        {
+          "code": "ABBV",
+          "name": "艾伯维",
+          "price": 206.6,
+          "volume": 6343104.0,
+          "amount": 1310485286.3999999,
+          "change_pct": -2.23
+        },
+        {
+          "code": "AMGN",
+          "name": "安进",
+          "price": 329.82,
+          "volume": 3821061.0,
+          "amount": 1260262339.02,
+          "change_pct": -4.75
+        },
+        {
+          "code": "ABT",
+          "name": "雅培",
+          "price": 89.46,
+          "volume": 12860934.0,
+          "amount": 1150539155.6399999,
+          "change_pct": -1.46
+        },
+        {
+          "code": "BMY",
+          "name": "百时美施贵宝",
+          "price": 58.22,
+          "volume": 18368451.0,
+          "amount": 1069411217.22,
+          "change_pct": -3.91
+        },
+        {
+          "code": "PFE",
+          "name": "辉瑞",
+          "price": 26.33,
+          "volume": 29318723.0,
+          "amount": 771961976.5899999,
+          "change_pct": -1.39
+        },
+        {
+          "code": "GILD",
+          "name": "吉利德科学",
+          "price": 131.65,
+          "volume": 5517169.0,
+          "amount": 726335298.85,
+          "change_pct": 0.62
+        }
+      ]
+    },
+    {
+      "name": "金融",
+      "amount": 14294775749.0,
+      "stock_count": 23,
+      "avg_change": -0.59,
+      "rise": 2,
+      "fall": 21,
+      "top_stocks": [
+        {
+          "code": "JPM",
+          "name": "摩根大通",
+          "price": 312.47,
+          "volume": 6135359.0,
+          "amount": 1917115626.7300003,
+          "change_pct": -0.24
+        },
+        {
+          "code": "C",
+          "name": "花旗集团",
+          "price": 127.44,
+          "volume": 10616454.0,
+          "amount": 1352960897.76,
+          "change_pct": -0.42
+        },
+        {
+          "code": "BAC",
+          "name": "美国银行",
+          "price": 53.24,
+          "volume": 24824952.0,
+          "amount": 1321680444.48,
+          "change_pct": -0.41
+        },
+        {
+          "code": "GS",
+          "name": "高盛",
+          "price": 923.71,
+          "volume": 1359755.0,
+          "amount": 1256019291.05,
+          "change_pct": -0.01
+        },
+        {
+          "code": "WFC",
+          "name": "富国银行",
+          "price": 80.81,
+          "volume": 14632654.0,
+          "amount": 1182464769.74,
+          "change_pct": -1.73
+        },
+        {
+          "code": "MS",
+          "name": "摩根士丹利",
+          "price": 190.17,
+          "volume": 4742870.0,
+          "amount": 901951587.9,
+          "change_pct": -0.22
+        },
+        {
+          "code": "COF",
+          "name": "第一资本金融",
+          "price": 191.91,
+          "volume": 4624197.0,
+          "amount": 887429646.27,
+          "change_pct": 0.32
+        },
+        {
+          "code": "SCHW",
+          "name": "嘉信理财",
+          "price": 91.54,
+          "volume": 8532643.0,
+          "amount": 781078140.22,
+          "change_pct": -0.11
+        },
+        {
+          "code": "AXP",
+          "name": "美国运通",
+          "price": 319.68,
+          "volume": 2385914.0,
+          "amount": 762728987.52,
+          "change_pct": -1.04
+        },
+        {
+          "code": "BLK",
+          "name": "贝莱德",
+          "price": 1061.68,
+          "volume": 471142.0,
+          "amount": 500202038.56,
+          "change_pct": -0.37
+        }
+      ]
+    },
+    {
+      "name": "工业",
+      "amount": 12753507965.910004,
+      "stock_count": 20,
+      "avg_change": -0.48,
+      "rise": 6,
+      "fall": 14,
+      "top_stocks": [
+        {
+          "code": "CAT",
+          "name": "卡特彼勒",
+          "price": 889.67,
+          "volume": 2376503.0,
+          "amount": 2114303424.01,
+          "change_pct": -0.05
+        },
+        {
+          "code": "GE",
+          "name": "GE航空航天",
+          "price": 286.51,
+          "volume": 3782915.0,
+          "amount": 1083842976.6499999,
+          "change_pct": -1.18
+        },
+        {
+          "code": "BA",
+          "name": "波音",
+          "price": 227.38,
+          "volume": 3494200.0,
+          "amount": 794511196.0,
+          "change_pct": -0.72
+        },
+        {
+          "code": "RTX",
+          "name": "雷神技术",
+          "price": 173.99,
+          "volume": 4494767.0,
+          "amount": 782044510.33,
+          "change_pct": -1.18
+        },
+        {
+          "code": "UAL",
+          "name": "联合航空",
+          "price": 92.52,
+          "volume": 8307860.0,
+          "amount": 768643207.1999999,
+          "change_pct": 2.8
+        },
+        {
+          "code": "LMT",
+          "name": "洛克希德马丁",
+          "price": 512.77,
+          "volume": 1403285.0,
+          "amount": 719562449.4499999,
+          "change_pct": -1.0
+        },
+        {
+          "code": "HON",
+          "name": "霍尼韦尔",
+          "price": 212.5,
+          "volume": 2988249.0,
+          "amount": 635002912.5,
+          "change_pct": -0.85
+        },
+        {
+          "code": "DAL",
+          "name": "达美航空",
+          "price": 68.98,
+          "volume": 9132001.0,
+          "amount": 629925428.98,
+          "change_pct": 1.46
+        },
+        {
+          "code": "AAL",
+          "name": "美国航空",
+          "price": 11.84,
+          "volume": 49175254.0,
+          "amount": 582235007.36,
+          "change_pct": 1.11
+        },
+        {
+          "code": "UNP",
+          "name": "联合太平洋",
+          "price": 266.32,
+          "volume": 2069249.0,
+          "amount": 551082393.68,
+          "change_pct": -1.17
+        }
+      ]
+    },
+    {
+      "name": "能源",
+      "amount": 11452493561.87,
+      "stock_count": 18,
+      "avg_change": -1.37,
+      "rise": 2,
+      "fall": 16,
+      "top_stocks": [
+        {
+          "code": "XOM",
+          "name": "埃克森美孚",
+          "price": 152.75,
+          "volume": 15458208.0,
+          "amount": 2361241272.0,
+          "change_pct": -1.02
+        },
+        {
+          "code": "CVX",
+          "name": "雪佛龙",
+          "price": 190.63,
+          "volume": 10435911.0,
+          "amount": 1989397713.93,
+          "change_pct": -1.39
+        },
+        {
+          "code": "COP",
+          "name": "康菲石油",
+          "price": 123.19,
+          "volume": 7784340.0,
+          "amount": 958952844.6,
+          "change_pct": -2.06
+        },
+        {
+          "code": "OXY",
+          "name": "西方石油",
+          "price": 58.71,
+          "volume": 13859603.0,
+          "amount": 813697292.13,
+          "change_pct": -3.09
+        },
+        {
+          "code": "VLO",
+          "name": "瓦莱罗能源",
+          "price": 246.87,
+          "volume": 2480432.0,
+          "amount": 612344247.84,
+          "change_pct": -2.26
+        },
+        {
+          "code": "SLB",
+          "name": "斯伦贝谢",
+          "price": 56.92,
+          "volume": 9711057.0,
+          "amount": 552753364.44,
+          "change_pct": 0.07
+        },
+        {
+          "code": "DVN",
+          "name": "戴文能源",
+          "price": 50.56,
+          "volume": 9504621.0,
+          "amount": 480553637.76000005,
+          "change_pct": -1.58
+        },
+        {
+          "code": "MPC",
+          "name": "马拉松原油",
+          "price": 246.15,
+          "volume": 1841853.0,
+          "amount": 453372115.95,
+          "change_pct": -0.86
+        },
+        {
+          "code": "PSX",
+          "name": "Phillips 66",
+          "price": 176.19,
+          "volume": 2431721.0,
+          "amount": 428444922.99,
+          "change_pct": -1.65
+        },
+        {
+          "code": "HAL",
+          "name": "哈里伯顿",
+          "price": 41.66,
+          "volume": 9614272.0,
+          "amount": 400530571.52,
+          "change_pct": -1.51
+        }
+      ]
+    },
+    {
+      "name": "必需消费品",
+      "amount": 11189041147.869999,
+      "stock_count": 20,
+      "avg_change": -0.33,
+      "rise": 5,
+      "fall": 15,
+      "top_stocks": [
+        {
+          "code": "COST",
+          "name": "开市客",
+          "price": 1011.7,
+          "volume": 1509728.0,
+          "amount": 1527391817.6000001,
+          "change_pct": -0.13
+        },
+        {
+          "code": "WMT",
+          "name": "沃尔玛",
+          "price": 131.6,
+          "volume": 10480869.0,
+          "amount": 1379282360.3999999,
+          "change_pct": -0.25
+        },
+        {
+          "code": "PG",
+          "name": "宝洁",
+          "price": 147.26,
+          "volume": 6814828.0,
+          "amount": 1003551571.28,
+          "change_pct": 0.12
+        },
+        {
+          "code": "KO",
+          "name": "可口可乐",
+          "price": 78.58,
+          "volume": 12610373.0,
+          "amount": 990923110.34,
+          "change_pct": -0.23
+        },
+        {
+          "code": "MO",
+          "name": "奥驰亚集团",
+          "price": 74.55,
+          "volume": 11813849.0,
+          "amount": 880722442.9499999,
+          "change_pct": 2.62
+        },
+        {
+          "code": "CL",
+          "name": "高露洁",
+          "price": 87.26,
+          "volume": 8933072.0,
+          "amount": 779499862.72,
+          "change_pct": 2.23
+        },
+        {
+          "code": "PM",
+          "name": "菲利普莫里斯国际",
+          "price": 166.38,
+          "volume": 4217110.0,
+          "amount": 701642761.8,
+          "change_pct": 0.79
+        },
+        {
+          "code": "PEP",
+          "name": "百事",
+          "price": 157.41,
+          "volume": 4447358.0,
+          "amount": 700058622.78,
+          "change_pct": -0.68
+        },
+        {
+          "code": "EL",
+          "name": "雅诗兰黛",
+          "price": 79.3,
+          "volume": 7022729.0,
+          "amount": 556902409.6999999,
+          "change_pct": 3.38
+        },
+        {
+          "code": "KMB",
+          "name": "金佰利",
+          "price": 97.67,
+          "volume": 4872391.0,
+          "amount": 475886428.97,
+          "change_pct": -0.77
+        }
+      ]
+    },
+    {
+      "name": "公用事业",
+      "amount": 6692223644.970001,
+      "stock_count": 20,
+      "avg_change": -0.48,
+      "rise": 4,
+      "fall": 16,
+      "top_stocks": [
+        {
+          "code": "SO",
+          "name": "南方电力",
+          "price": 96.71,
+          "volume": 7189390.0,
+          "amount": 695285906.9,
+          "change_pct": 0.01
+        },
+        {
+          "code": "NEE",
+          "name": "新纪元能源",
+          "price": 96.95,
+          "volume": 7106181.0,
+          "amount": 688944247.95,
+          "change_pct": -0.95
+        },
+        {
+          "code": "FE",
+          "name": "第一能源",
+          "price": 46.92,
+          "volume": 11488097.0,
+          "amount": 539021511.24,
+          "change_pct": -1.26
+        },
+        {
+          "code": "XEL",
+          "name": "埃克西尔能源",
+          "price": 82.58,
+          "volume": 5345932.0,
+          "amount": 441467064.56,
+          "change_pct": -0.45
+        },
+        {
+          "code": "D",
+          "name": "道明尼能源",
+          "price": 63.94,
+          "volume": 6257869.0,
+          "amount": 400128143.86,
+          "change_pct": -0.87
+        },
+        {
+          "code": "NRG",
+          "name": "NRG Energy Inc",
+          "price": 153.37,
+          "volume": 2380555.0,
+          "amount": 365105720.35,
+          "change_pct": -1.12
+        },
+        {
+          "code": "EXC",
+          "name": "爱克斯龙电力",
+          "price": 46.5,
+          "volume": 7146086.0,
+          "amount": 332292999.0,
+          "change_pct": 1.11
+        },
+        {
+          "code": "DUK",
+          "name": "杜克能源",
+          "price": 128.6,
+          "volume": 2578998.0,
+          "amount": 331659142.8,
+          "change_pct": -0.73
+        },
+        {
+          "code": "AEP",
+          "name": "美国电力",
+          "price": 136.91,
+          "volume": 2390271.0,
+          "amount": 327252002.61,
+          "change_pct": -0.15
+        },
+        {
+          "code": "ETR",
+          "name": "安特吉",
+          "price": 116.43,
+          "volume": 2737479.0,
+          "amount": 318724679.97,
+          "change_pct": -0.72
+        }
+      ]
+    },
+    {
+      "name": "原材料",
+      "amount": 6126616772.300001,
+      "stock_count": 20,
+      "avg_change": -0.38,
+      "rise": 9,
+      "fall": 11,
+      "top_stocks": [
+        {
+          "code": "LIN",
+          "name": "Linde plc",
+          "price": 507.92,
+          "volume": 2578300.0,
+          "amount": 1309570136.0,
+          "change_pct": 1.35
+        },
+        {
+          "code": "LYB",
+          "name": "利安德巴塞尔工业",
+          "price": 74.99,
+          "volume": 7589625.0,
+          "amount": 569145978.75,
+          "change_pct": 0.52
+        },
+        {
+          "code": "NEM",
+          "name": "纽蒙特",
+          "price": 108.62,
+          "volume": 5126670.0,
+          "amount": 556858895.4,
+          "change_pct": -2.22
+        },
+        {
+          "code": "AEM",
+          "name": "伊格尔矿业",
+          "price": 183.56,
+          "volume": 2773903.0,
+          "amount": 509177634.68,
+          "change_pct": -2.47
+        },
+        {
+          "code": "SHW",
+          "name": "宣伟",
+          "price": 318.0,
+          "volume": 1378345.0,
+          "amount": 438313710.0,
+          "change_pct": -1.12
+        },
+        {
+          "code": "SHW",
+          "name": "宣伟",
+          "price": 318.0,
+          "volume": 1378345.0,
+          "amount": 438313710.0,
+          "change_pct": -1.12
+        },
+        {
+          "code": "APD",
+          "name": "空气化工",
+          "price": 301.07,
+          "volume": 1028424.0,
+          "amount": 309627613.68,
+          "change_pct": 0.34
+        },
+        {
+          "code": "APD",
+          "name": "空气化工",
+          "price": 301.07,
+          "volume": 1028424.0,
+          "amount": 309627613.68,
+          "change_pct": 0.34
+        },
+        {
+          "code": "CF",
+          "name": "CF实业",
+          "price": 122.69,
+          "volume": 2157495.0,
+          "amount": 264703061.54999998,
+          "change_pct": -1.22
+        },
+        {
+          "code": "ECL",
+          "name": "艺康",
+          "price": 259.51,
+          "volume": 978377.0,
+          "amount": 253898615.26999998,
+          "change_pct": -0.42
+        }
+      ]
+    },
+    {
+      "name": "房地产",
+      "amount": 4884220935.700001,
+      "stock_count": 20,
+      "avg_change": 0.12,
+      "rise": 11,
+      "fall": 8,
+      "top_stocks": [
+        {
+          "code": "EQIX",
+          "name": "易昆尼克斯",
+          "price": 1085.03,
+          "volume": 658273.0,
+          "amount": 714245953.1899999,
+          "change_pct": 0.2
+        },
+        {
+          "code": "RCL",
+          "name": "皇家加勒比邮轮",
+          "price": 265.55,
+          "volume": 2599798.0,
+          "amount": 690376358.9,
+          "change_pct": 0.68
+        },
+        {
+          "code": "WELL",
+          "name": "Welltower Inc",
+          "price": 216.91,
+          "volume": 2480634.0,
+          "amount": 538074320.9399999,
+          "change_pct": -0.2
+        },
+        {
+          "code": "PLD",
+          "name": "安博",
+          "price": 141.41,
+          "volume": 2842153.0,
+          "amount": 401908855.73,
+          "change_pct": -0.43
+        },
+        {
+          "code": "VTR",
+          "name": "芬塔公司",
+          "price": 88.02,
+          "volume": 4084405.0,
+          "amount": 359509328.09999996,
+          "change_pct": 0.18
+        },
+        {
+          "code": "AMT",
+          "name": "美国电塔",
+          "price": 181.61,
+          "volume": 1943196.0,
+          "amount": 352903825.56,
+          "change_pct": -0.6
+        },
+        {
+          "code": "O",
+          "name": "Realty Income Corp",
+          "price": 63.81,
+          "volume": 4658184.0,
+          "amount": 297238721.04,
+          "change_pct": -0.67
+        },
+        {
+          "code": "CCI",
+          "name": "冠城",
+          "price": 89.26,
+          "volume": 3292670.0,
+          "amount": 293903724.2,
+          "change_pct": 0.54
+        },
+        {
+          "code": "SPG",
+          "name": "西蒙地产",
+          "price": 202.44,
+          "volume": 1014407.0,
+          "amount": 205356553.07999998,
+          "change_pct": -0.62
+        },
+        {
+          "code": "EQR",
+          "name": "公平住屋",
+          "price": 65.17,
+          "volume": 2334019.0,
+          "amount": 152108018.23,
+          "change_pct": -0.32
+        }
+      ]
+    },
+    {
+      "name": "中国概念股",
+      "amount": 2320579195.5899997,
+      "stock_count": 19,
+      "avg_change": -0.3,
+      "rise": 7,
+      "fall": 12,
+      "top_stocks": [
+        {
+          "code": "BABA",
+          "name": "阿里巴巴",
+          "price": 131.5,
+          "volume": 6199254.0,
+          "amount": 815201901.0,
+          "change_pct": -0.29
+        },
+        {
+          "code": "PDD",
+          "name": "拼多多",
+          "price": 99.72,
+          "volume": 4286068.0,
+          "amount": 427406700.96,
+          "change_pct": -0.16
+        },
+        {
+          "code": "NIO",
+          "name": "蔚来",
+          "price": 5.91,
+          "volume": 61247555.0,
+          "amount": 361973050.05,
+          "change_pct": -7.51
+        },
+        {
+          "code": "JD",
+          "name": "京东",
+          "price": 29.96,
+          "volume": 4775758.0,
+          "amount": 143081709.68,
+          "change_pct": -1.19
+        },
+        {
+          "code": "XPEV",
+          "name": "小鹏集团",
+          "price": 15.83,
+          "volume": 7634024.0,
+          "amount": 120846599.92,
+          "change_pct": -2.88
+        },
+        {
+          "code": "BIDU",
+          "name": "百度",
+          "price": 125.88,
+          "volume": 921067.0,
+          "amount": 115943913.96,
+          "change_pct": -0.51
+        },
+        {
+          "code": "NTES",
+          "name": "网易",
+          "price": 117.98,
+          "volume": 787423.0,
+          "amount": 92900165.54,
+          "change_pct": 0.4
+        },
+        {
+          "code": "FUTU",
+          "name": "富途控股",
+          "price": 154.85,
+          "volume": 455184.0,
+          "amount": 70485242.39999999,
+          "change_pct": 0.22
+        },
+        {
+          "code": "BEKE",
+          "name": "贝壳",
+          "price": 17.06,
+          "volume": 2682873.0,
+          "amount": 45769813.379999995,
+          "change_pct": -0.41
+        },
+        {
+          "code": "LI",
+          "name": "理想汽车",
+          "price": 17.57,
+          "volume": 1768651.0,
+          "amount": 31075198.07,
+          "change_pct": -1.46
+        }
+      ]
+    }
+  ]
+}
