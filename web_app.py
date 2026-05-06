@@ -11,6 +11,8 @@ from flask import Flask, render_template, jsonify, request
 
 from config import WEB_HOST, WEB_PORT
 from board_data import load_board_map
+from board_concept_intro import get_board_concept_intro
+from stock_concept_map import build_stock_concept_index, format_concept_preview
 from auction_monitor import (
     fetch_auction_data,
     aggregate_board_amount,
@@ -421,6 +423,8 @@ def api_board_stocks(date_str, board_name):
                         "pre_close": _safe_float(row["pre_close"]),
                     }
 
+        stock_concept_idx = build_stock_concept_index(board_map)
+
         # 构建返回数据
         all_rows = []
         for idx, row in board_stocks.iterrows():
@@ -462,6 +466,7 @@ def api_board_stocks(date_str, board_name):
                 amount_change_display = "--"
                 prev_change_pct = None
 
+            concept_names = stock_concept_idx.get(ts_code, [])
             all_rows.append({
                 "ts_code": ts_code,
                 "name": name_map.get(ts_code, ""),
@@ -474,10 +479,13 @@ def api_board_stocks(date_str, board_name):
                 "pre_close": pre_close,
                 "vol": int(vol) if vol > 0 else 0,
                 "prev_change_pct": round(prev_change_pct, 2) if prev_change_pct is not None else None,
+                "concept_names": concept_names,
+                "concept_count": len(concept_names),
+                "concept_preview": format_concept_preview(concept_names),
             })
 
-        # 按成交额排序
-        all_rows.sort(key=lambda x: x["amount"], reverse=True)
+        # 按涨跌幅从高到低排序
+        all_rows.sort(key=lambda x: x["change_pct"], reverse=True)
 
         # 分页（page_size=0 返回全部）
         total = len(all_rows)
@@ -500,6 +508,52 @@ def api_board_stocks(date_str, board_name):
             "data": paged_rows,
         })
 
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@app.route("/api/stock_concepts_detail/<path:ts_code>")
+def api_stock_concepts_detail(ts_code):
+    """单只股票：所属全部概念/题材 + 各题材同花顺简介（按需加载，带概念级缓存）"""
+    try:
+        board_map = load_board_map()
+        if not board_map:
+            return jsonify({"success": False, "message": "板块映射为空"})
+
+        idx = build_stock_concept_index(board_map)
+        names = idx.get(ts_code, [])
+        stock_name = get_stock_name(ts_code)
+
+        if not names:
+            return jsonify({
+                "success": True,
+                "ts_code": ts_code,
+                "name": stock_name,
+                "concept_total": 0,
+                "truncated": False,
+                "sections": [],
+            })
+
+        max_sections = 40
+        capped = names[:max_sections]
+        sections = []
+        for cn in capped:
+            intro_full, _ = get_board_concept_intro(cn)
+            intro_full = (intro_full or "").strip()
+            sections.append({
+                "concept_name": cn,
+                "intro": intro_full if intro_full else None,
+                "has_intro": bool(intro_full),
+            })
+
+        return jsonify({
+            "success": True,
+            "ts_code": ts_code,
+            "name": stock_name,
+            "concept_total": len(names),
+            "truncated": len(names) > max_sections,
+            "sections": sections,
+        })
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 

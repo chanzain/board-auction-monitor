@@ -943,7 +943,7 @@
 
     <!-- 板块成分股弹窗 -->
     <div id="stockModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:2000;justify-content:center;align-items:center;">
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:92%;max-width:1000px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,0.5);">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:96%;max-width:1200px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,0.5);">
         <!-- 弹窗头部 -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);flex-shrink:0;">
           <div>
@@ -980,13 +980,31 @@
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">涨跌幅</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">较前日变化</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">前日涨跌</th>
+                  <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);min-width:220px;">所属概念·题材</th>
                 </tr>
               </thead>
               <tbody id="stockTableBody">
-                <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 板块概念介绍全文弹窗 -->
+    <div id="conceptDetailModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:2100;justify-content:center;align-items:center;padding:16px;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 40px rgba(0,0,0,0.45);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <h3 id="conceptDetailTitle" style="font-size:15px;font-weight:600;margin:0;">个股概念与题材说明</h3>
+          <button type="button" onclick="closeConceptDetailModal()" style="background:none;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:6px;">×</button>
+        </div>
+        <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+          <p id="conceptDetailSubtitle" style="font-size:12px;color:var(--text-secondary);margin:0 0 12px 0;"></p>
+          <pre id="conceptDetailBody" style="margin:0;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word;font-family:inherit;color:var(--text);"></pre>
+        </div>
+        <div style="padding:12px 20px 16px;border-top:1px solid var(--border);flex-shrink:0;">
+          <button type="button" class="btn btn-primary" style="width:100%;padding:8px;border-radius:8px;font-size:13px;" onclick="closeConceptDetailModal()">关闭</button>
         </div>
       </div>
     </div>
@@ -1023,6 +1041,13 @@
     }
     function isDateCached(dateStr) {
       return historyDates.indexOf(dateStr) !== -1;
+    }
+
+    function escapeHtml(text) {
+      if (text === null || text === undefined) return '';
+      var d = document.createElement('div');
+      d.textContent = String(text);
+      return d.innerHTML;
     }
 
     /* ===== 消息提示 ===== */
@@ -1834,6 +1859,56 @@
 
     /* ===== 板块成分股弹窗 ===== */
     var currentStockData = null;  // 存储当前加载的股票数据
+    var currentTypeFilter = 'all';
+    var currentModalBoardNameForConcept = '';
+
+    async function openConceptDetailModal(tsCode) {
+      if (!tsCode) return;
+      document.getElementById('conceptDetailModal').style.display = 'flex';
+      document.getElementById('conceptDetailTitle').textContent = '个股概念与题材说明';
+      var subParts = [];
+      if (currentModalBoardNameForConcept) {
+        subParts.push('当前列表板块：' + currentModalBoardNameForConcept);
+      }
+      subParts.push('下列概念名来自本地板块映射；各段「题材说明」尽量匹配同花顺同名概念页（可在 board_concept_ths_alias.json 中纠偏）。');
+      document.getElementById('conceptDetailSubtitle').textContent = subParts.join(' ');
+      var body = document.getElementById('conceptDetailBody');
+      body.textContent = '正在加载「' + tsCode + '」的概念与题材说明…';
+
+      try {
+        var url = '/api/stock_concepts_detail/' + encodeURIComponent(tsCode);
+        var resp = await fetch(url);
+        var result = await resp.json();
+        if (!result.success) {
+          body.textContent = result.message || '加载失败';
+          return;
+        }
+        var lines = [];
+        lines.push('股票：' + (result.name || '') + '  ' + result.ts_code);
+        lines.push('共 ' + result.concept_total + ' 个概念/题材' + (result.truncated ? '（正文仅展示前 ' + result.sections.length + ' 条，其余略）' : ''));
+        lines.push('');
+        if (!result.sections || result.sections.length === 0) {
+          lines.push('本地映射中未收录该股所属概念，或该股未出现在任何板块成分列表中。');
+        } else {
+          result.sections.forEach(function(sec) {
+            lines.push('【' + sec.concept_name + '】');
+            if (sec.intro) {
+              lines.push(sec.intro);
+            } else {
+              lines.push('（同花顺暂无同名概念简介，可在 data/board_concept_ths_alias.json 中为该概念配置映射到同花顺板块名）');
+            }
+            lines.push('');
+          });
+        }
+        body.textContent = lines.join('\n');
+      } catch (err) {
+        body.textContent = '请求失败：' + (err.message || String(err));
+      }
+    }
+
+    function closeConceptDetailModal() {
+      document.getElementById('conceptDetailModal').style.display = 'none';
+    }
 
     function openStockModal(boardName) {
       if (!currentDate) {
@@ -1850,6 +1925,7 @@
       modal.style.display = 'flex';
 
       // 重置过滤按钮
+      currentTypeFilter = 'all';
       var btns = modal.querySelectorAll('.market-date-btn');
       btns.forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('filterAll').classList.add('active');
@@ -1859,13 +1935,15 @@
     }
 
     function closeStockModal() {
+      closeConceptDetailModal();
       document.getElementById('stockModal').style.display = 'none';
       currentStockData = null;
+      currentModalBoardNameForConcept = '';
     }
 
     async function loadStockData(boardName) {
       var tbody = document.getElementById('stockTableBody');
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
 
       try {
         var url = '/api/board_stocks/' + currentDate + '/' + encodeURIComponent(boardName);
@@ -1873,14 +1951,15 @@
         var result = await resp.json();
 
         if (result.success) {
+          currentModalBoardNameForConcept = result.board_name || boardName;
           currentStockData = result.data || [];
           updateFilterCounts();
           renderStockTable(currentStockData);
         } else {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--red);">' + (result.message || '加载失败') + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--red);">' + escapeHtml(result.message || '加载失败') + '</td></tr>';
         }
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--red);">请求失败: ' + e.message + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--red);">请求失败: ' + escapeHtml(e.message) + '</td></tr>';
       }
     }
 
@@ -1896,19 +1975,21 @@
       document.getElementById('filterCountUp').textContent = '(' + up + ')';
       document.getElementById('filterCountDown').textContent = '(' + down + ')';
       document.getElementById('filterCountFlat').textContent = '(' + flat + ')';
-      document.getElementById('modalStats').textContent = '共 ' + total + ' 只 | 涨 ' + up + ' | 跌 ' + down + ' | 平 ' + flat;
+      document.getElementById('modalStats').textContent = '共 ' + total + ' 只 | 涨 ' + up + ' | 跌 ' + down + ' | 平 ' + flat + ' | 按涨跌幅排序';
     }
 
     function renderStockTable(data) {
       var tbody = document.getElementById('stockTableBody');
 
       if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-secondary);">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-secondary);">暂无数据</td></tr>';
         return;
       }
 
+      var rows = data.slice().sort(function(a, b) { return (b.change_pct || 0) - (a.change_pct || 0); });
+
       var html = '';
-      data.forEach(function(stock) {
+      rows.forEach(function(stock) {
         var changeCls = stock.change_pct > 0 ? 'up' : stock.change_pct < 0 ? 'down' : 'flat';
         var changeSign = stock.change_pct > 0 ? '+' : '';
         var amountChange = stock.amount_change || '--';
@@ -1931,8 +2012,14 @@
           prevChangeHtml = '<span class="change-badge ' + prevCls + '">' + prevSign + stock.prev_change_pct.toFixed(2) + '%</span>';
         }
 
-        // 股票名称+代码
-        var stockLabel = stock.name ? '<span style="font-weight:500;">' + stock.name + '</span> <span style="font-size:11px;color:var(--text-secondary);font-family:monospace;">' + stock.ts_code + '</span>' : '<span style="font-family:monospace;">' + stock.ts_code + '</span>';
+        // 股票名称+代码（转义防 XSS）
+        var stockLabel = stock.name
+          ? '<span style="font-weight:500;">' + escapeHtml(stock.name) + '</span> <span style="font-size:11px;color:var(--text-secondary);font-family:monospace;">' + escapeHtml(stock.ts_code) + '</span>'
+          : '<span style="font-family:monospace;">' + escapeHtml(stock.ts_code) + '</span>';
+
+        var previewShow = (stock.concept_preview && String(stock.concept_preview).trim()) ? stock.concept_preview : '暂无';
+        var cc = typeof stock.concept_count === 'number' ? stock.concept_count : (stock.concept_names ? stock.concept_names.length : 0);
+        var previewLine = escapeHtml(previewShow) + (cc > 0 ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:4px;opacity:0.85;">共 ' + cc + ' 个概念·题材</div>' : '');
 
         // 现价（前收盘价）
         html += '<tr style="border-bottom:1px solid var(--border);transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'none\'">' +
@@ -1947,6 +2034,10 @@
             '<span class="change-badge ' + amountChangeCls + '">' + amountChange + '</span>' +
           '</td>' +
           '<td style="padding:10px 14px;text-align:right;">' + prevChangeHtml + '</td>' +
+          '<td style="padding:10px 14px;font-size:12px;vertical-align:top;max-width:300px;">' +
+            '<div style="color:var(--text-secondary);line-height:1.45;margin-bottom:8px;">' + previewLine + '</div>' +
+            '<button type="button" class="btn btn-primary" style="padding:4px 12px;font-size:11px;border-radius:6px;cursor:pointer;" onclick="openConceptDetailModal(\'' + String(stock.ts_code).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\')">详情</button>' +
+          '</td>' +
         '</tr>';
       });
 
@@ -1981,8 +2072,9 @@
         });
       }
 
+      filtered = filtered.slice().sort(function(a, b) { return (b.change_pct || 0) - (a.change_pct || 0); });
       renderStockTable(filtered);
-      document.getElementById('modalStats').textContent = '显示 ' + filtered.length + ' 只';
+      document.getElementById('modalStats').textContent = '显示 ' + filtered.length + ' 只（按涨跌幅排序）';
     }
 
     function filterStockByName() {
@@ -2005,13 +2097,24 @@
       }
     });
 
-    // ESC键关闭弹窗
+    // ESC键关闭弹窗（先关概念详情，再关成分股）
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
+        var cdm = document.getElementById('conceptDetailModal');
+        if (cdm && cdm.style.display === 'flex') {
+          closeConceptDetailModal();
+          return;
+        }
         var modal = document.getElementById('stockModal');
         if (modal.style.display === 'flex') {
           closeStockModal();
         }
+      }
+    });
+
+    document.getElementById('conceptDetailModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeConceptDetailModal();
       }
     });
 
