@@ -10,7 +10,9 @@ import time
 import sys
 import importlib
 from pathlib import Path
-from datetime import datetime, timedelta
+from typing import Optional
+from datetime import date as date_type, datetime, time as dt_time, timedelta
+from zoneinfo import ZoneInfo
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config import (
@@ -25,8 +27,92 @@ DATA_DIR = Path(__file__).parent / "data"
 AUCTION_DIR = DATA_DIR / "auction"
 SUMMARY_DIR = DATA_DIR / "board_summary"
 
+CN_TZ = ZoneInfo("Asia/Shanghai")
+
 # 初始化 Tushare
 pro = ts.pro_api(TUSHARE_TOKEN)
+
+
+def shanghai_now() -> datetime:
+    """当前上海时区时间（带 tzinfo）"""
+    return datetime.now(CN_TZ)
+
+
+def is_call_auction_realtime_window(now: Optional[datetime] = None) -> bool:
+    """
+    是否处于集合竞价可观测实时成交额时段（上交所规则：9:15–9:30，不含 9:30 连续竞价起点）。
+    该时段内东方财富 push 接口的成交额为盘中累积，适合轮询采集。
+    """
+    if now is None:
+        now = shanghai_now()
+    elif now.tzinfo is None:
+        now = now.replace(tzinfo=CN_TZ)
+    else:
+        now = now.astimezone(CN_TZ)
+    t = now.time()
+    return dt_time(9, 15) <= t < dt_time(9, 30)
+
+
+def is_same_calendar_day_as_shanghai_today(trade_date: str) -> bool:
+    """trade_date 是否为 YYYYMMDD 或与 'today' 对应的上海日历当日"""
+    if trade_date == "today":
+        return True
+    return trade_date == shanghai_now().strftime("%Y%m%d")
+
+
+_AK_TRADE_DATES_DF = None
+
+
+def _akshare_trade_dates_df():
+    """懒加载全历史 A 股交易日（新浪），作 Tushare trade_cal 无权限时的回退"""
+    global _AK_TRADE_DATES_DF
+    if _AK_TRADE_DATES_DF is None:
+        import akshare as ak
+        _AK_TRADE_DATES_DF = ak.tool_trade_date_hist_sina()
+    return _AK_TRADE_DATES_DF
+
+
+def _previous_trade_day_akshare(ref_d: date_type) -> Optional[str]:
+    try:
+        df = _akshare_trade_dates_df()
+        sub = df[df["trade_date"] < ref_d]
+        if sub.empty:
+            return None
+        return sub["trade_date"].iloc[-1].strftime("%Y%m%d")
+    except Exception as e:
+        print(f"  AkShare 交易日历回退失败: {e}")
+        return None
+
+
+def get_previous_trade_day(ref_date: str) -> Optional[str]:
+    """
+    交易所视角的上一交易日（非自然日「昨天」）。
+    ref_date: YYYYMMDD
+    优先 Tushare trade_cal；无权限或失败时用 AkShare 新浪交易日历。
+    """
+    try:
+        ref_d = datetime.strptime(ref_date, "%Y%m%d").date()
+    except ValueError:
+        return None
+    start_date = (ref_d - timedelta(days=400)).strftime("%Y%m%d")
+    end_date = ref_date
+    try:
+        cal = pro.trade_cal(
+            exchange="SSE",
+            start_date=start_date,
+            end_date=end_date,
+            is_open="1",
+        )
+        if cal is not None and not cal.empty:
+            cal = cal.copy()
+            cal["cal_date"] = cal["cal_date"].astype(str)
+            before = cal[cal["cal_date"] < ref_date]
+            if not before.empty:
+                return str(before["cal_date"].iloc[-1])
+    except Exception:
+        pass
+
+    return _previous_trade_day_akshare(ref_d)
 
 
 # ── 东方财富数据源 ──────────────────────────────────────────────
@@ -67,6 +153,15 @@ def _fetch_from_eastmoney(trade_date: str) -> pd.DataFrame:
 
     df = df[needed]
     print(f"[东方财富] 获取到 {len(df)} 条竞价数据")
+
+    # 与 Tushare 路径一致，落盘便于历史接口与个股明细读取
+    if not df.empty and "trade_date" in df.columns:
+        td = str(df["trade_date"].iloc[0])
+        AUCTION_DIR.mkdir(parents=True, exist_ok=True)
+        out = AUCTION_DIR / f"auction_{td}.csv"
+        df.to_csv(out, index=False, encoding="utf-8-sig")
+        print(f"  数据已保存: {out}")
+
     return df
 
 
@@ -78,12 +173,24 @@ def fetch_auction_data(trade_date: str, source: str = "tushare") -> pd.DataFrame
         source: 数据源，"tushare"（默认）/ "eastmoney" / "auto"
     返回: DataFrame[ts_code, trade_date, vol, price, amount, pre_close]
     """
+    original_arg = trade_date
     if trade_date == "today":
-        trade_date = datetime.now().strftime("%Y%m%d")
+        trade_date = shanghai_now().strftime("%Y%m%d")
 
-    # ── auto 模式：先试 Tushare，失败则用东方财富 ──
+    # ── auto 模式 ──
+    # 当日 9:15–9:30：优先东方财富实时全市场行情（累积竞价成交额），Tushare  stk_auction 往往滞后或尚未就绪
+    # 其他时段：先试 Tushare，失败再东方财富
     if source == "auto":
         print(f"正在获取 {trade_date} 集合竞价数据（自动模式）...")
+        prefer_em = is_call_auction_realtime_window() and is_same_calendar_day_as_shanghai_today(
+            original_arg
+        )
+        if prefer_em:
+            print("  当前为集合竞价实时窗口(9:15-9:30)，优先使用东方财富实时源...")
+            df = _fetch_from_eastmoney(trade_date)
+            if df is not None and not df.empty:
+                return df
+            print("  [auto] 东方财富无数据，改试 Tushare...")
         df = _fetch_from_tushare(trade_date)
         if df is not None and not df.empty:
             return df

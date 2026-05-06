@@ -1,6 +1,6 @@
 """
 东方财富竞价数据源 - 作为 Tushare 的补充/替代
-在竞价时段（9:15-9:25）可实时获取数据
+集合竞价观察窗口（9:15-9:30，沪/深）内可轮询获取实时累积成交额；9:25 产生开盘价后至 9:30 仍为竞价展示时段。
 """
 import requests
 import time
@@ -60,9 +60,8 @@ def fetch_all_em_realtime():
 
 def get_auction_data_from_em(trade_date=None):
     """
-    从东方财富获取竞价数据
-    在 9:15-9:25 期间调用，f2(最新价)即为竞价成交价
-    返回格式与 tushare stk_auction_moni 对齐，方便后续复用
+    从东方财富获取全 A 实时行情，用于集合竞价阶段成交额/价量
+    9:15-9:30 内多次调用可得到随时间更新的累积成交额（f6）；f2 在竞价阶段为竞价相关成交价展示
     """
     if trade_date is None:
         trade_date = datetime.now().strftime("%Y%m%d")

@@ -5,7 +5,7 @@ Flask Web 服务 - 板块竞价数据可视化面板
 import os
 import json
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from flask import Flask, render_template, jsonify, request
 
@@ -15,6 +15,7 @@ from auction_monitor import (
     fetch_auction_data,
     aggregate_board_amount,
     format_amount,
+    get_previous_trade_day,
     FOCUS_BOARDS,
     TOP_N,
 )
@@ -102,16 +103,8 @@ def index():
 
 
 def get_previous_trade_date(date_str):
-    """获取前一个交易日的日期（查找最近的历史数据文件）"""
-    current = datetime.strptime(date_str, "%Y%m%d")
-    # 向前查找7天（覆盖周末和节假日）
-    for i in range(1, 8):
-        prev_date = current - timedelta(days=i)
-        prev_str = prev_date.strftime("%Y%m%d")
-        prev_csv = SUMMARY_DIR / f"board_auction_{prev_str}.csv"
-        if prev_csv.exists():
-            return prev_str
-    return None
+    """上一交易日（按交易所日历，非自然日「昨天」、非「本地最近有文件的日期」）"""
+    return get_previous_trade_day(date_str)
 
 
 def calculate_amount_change(current_df, prev_date_str):
@@ -298,6 +291,7 @@ def api_fetch():
         return jsonify({
             "success": True,
             "date": actual_date,
+            "prev_date": prev_date,
             "source": source,
             "total_amount": float(auction_df["amount"].sum()),
             "total_stocks": len(auction_df),
@@ -366,6 +360,7 @@ def api_history(date_str):
     return jsonify({
         "success": True,
         "date": date_str,
+        "prev_date": prev_date,
         "source": data_source,
         "total_amount": total_amount,
         "total_stocks": total_stocks,
