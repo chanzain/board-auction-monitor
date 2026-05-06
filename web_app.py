@@ -825,15 +825,80 @@ def api_us_sectors_refresh():
 def api_hk_sectors():
     """获取港股板块成交额数据（缓存优先）"""
     try:
-        from hk_sector import get_hk_sector_data, load_hk_sector_data
+        from hk_sector import (
+            get_hk_sector_data,
+            load_hk_sector_data,
+            format_hk_amount_change_display,
+            get_hk_fetch_last_error,
+        )
         force = request.args.get("refresh", "0") == "1"
         data = get_hk_sector_data(force_refresh=force)
-        if data:
-            return jsonify({"success": True, **data})
-        data = load_hk_sector_data()
-        if data:
-            return jsonify({"success": True, "from_cache": True, **data})
-        return jsonify({"success": False, "message": "数据获取失败"})
+        if not data:
+            data = load_hk_sector_data()
+            cached = True
+        else:
+            cached = False
+        if not data:
+            err = get_hk_fetch_last_error()
+            return jsonify({
+                "success": False,
+                "message": err or "数据获取失败（无本地缓存）",
+            })
+        sectors = data.get("sectors") or []
+        for s in sectors:
+            amt = _safe_float(s.get("amount"))
+            prev_amt = _safe_float(s.get("prev_amount", 0))
+            chg = _safe_float(s.get("amount_change", amt - prev_amt))
+            s["prev_amount"] = prev_amt
+            s["amount_change"] = chg
+            s["amount_display"] = format_amount(amt) if amt else "-"
+            s["prev_amount_display"] = format_amount(prev_amt) if prev_amt else "-"
+            if data.get("prev_date"):
+                s["amount_change_display"] = format_hk_amount_change_display(chg)
+            else:
+                s["amount_change_display"] = "--"
+        payload = {"success": True, **data}
+        if cached:
+            payload["from_cache"] = True
+        return jsonify(payload)
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+@app.route("/api/hk_board_stocks/<path:sector_name>")
+def api_hk_board_stocks(sector_name):
+    """港股某行业/板块成分股（成交额、涨跌幅、较前一日成交额变化）"""
+    try:
+        from urllib.parse import unquote
+        from hk_sector import get_constituents_for_sector, format_hk_amount_change_display
+
+        name = unquote(sector_name)
+        rows, prev_date = get_constituents_for_sector(name)
+        out = []
+        for r in rows:
+            achg = _safe_float(r.get("amount_change"))
+            if prev_date:
+                chg_disp = format_hk_amount_change_display(achg)
+            else:
+                chg_disp = "--"
+            out.append({
+                "code": r["code"],
+                "name": r.get("name", ""),
+                "amount": _safe_float(r.get("amount")),
+                "amount_display": format_amount(_safe_float(r.get("amount"))),
+                "price": _safe_float(r.get("price")),
+                "pre_close": _safe_float(r.get("pre_close")),
+                "change_pct": r.get("change_pct"),
+                "prev_amount": _safe_float(r.get("prev_amount")),
+                "amount_change_display": chg_disp,
+            })
+        return jsonify({
+            "success": True,
+            "sector_name": name,
+            "prev_date": prev_date,
+            "total_count": len(out),
+            "data": out,
+        })
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 

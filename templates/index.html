@@ -632,7 +632,7 @@
   <div class="header">
     <h1>板块竞价监控 <span class="badge">Tushare</span></h1>
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchTab('board')">板块竞价</button>
+      <button class="nav-tab active" onclick="switchTab('board')">A股板块竞价</button>
       <button class="nav-tab" onclick="switchTab('market')">大盘数据对比</button>
       <button class="nav-tab" onclick="switchTab('watchlist')">我的关注</button>
       <button class="nav-tab" onclick="switchTab('usSector')">美股板块</button>
@@ -1005,6 +1005,39 @@
         </div>
         <div style="padding:12px 20px 16px;border-top:1px solid var(--border);flex-shrink:0;">
           <button type="button" class="btn btn-primary" style="width:100%;padding:8px;border-radius:8px;font-size:13px;" onclick="closeConceptDetailModal()">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 港股板块成分股弹窗（与 A 股列表字段对齐简化版，无 A 股概念映射） -->
+    <div id="hkStockModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:2005;justify-content:center;align-items:center;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:96%;max-width:1000px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <div>
+            <h3 id="hkStockModalTitle" style="font-size:16px;font-weight:600;">港股成分股</h3>
+            <div id="hkStockModalSubtitle" style="font-size:12px;color:var(--text-secondary);margin-top:4px;"></div>
+          </div>
+          <button type="button" onclick="closeHKStockModal()" style="background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;padding:4px 8px;">×</button>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:16px 24px;">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">按涨跌幅降序；成交额为东财累计成交额（港元）。「较前日成交额」对比本地保存的上一日快照。</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);background:var(--card);">昨收</th>
+                  <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);background:var(--card);">股票</th>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);background:var(--card);">成交额</th>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);background:var(--card);">现价</th>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);background:var(--card);">涨跌幅</th>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);background:var(--card);">较前日成交额</th>
+                </tr>
+              </thead>
+              <tbody id="hkStockTableBody">
+                <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -2097,12 +2130,17 @@
       }
     });
 
-    // ESC键关闭弹窗（先关概念详情，再关成分股）
+    // ESC键关闭弹窗（先关概念详情，再关港股成分股，再关 A 股成分股）
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         var cdm = document.getElementById('conceptDetailModal');
         if (cdm && cdm.style.display === 'flex') {
           closeConceptDetailModal();
+          return;
+        }
+        var hkm = document.getElementById('hkStockModal');
+        if (hkm && hkm.style.display === 'flex') {
+          closeHKStockModal();
           return;
         }
         var modal = document.getElementById('stockModal');
@@ -2510,6 +2548,7 @@
     var hkSectorDataLoaded = false;
     var hkSectorCurrentDate = '';
     var hkSectorSearchKeyword = '';
+    var hkSectorLastResult = null;
 
     function formatHKDAmount(amount) {
       if (!amount || amount === 0) return '--';
@@ -2525,20 +2564,19 @@
       container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</div>';
 
       try {
-        if (forceRefresh) {
-          await fetch('/api/hk_sectors/refresh', { method: 'POST' });
-          hkSectorDataLoaded = false;
-        }
-
-        var resp = await fetch('/api/hk_sectors');
+        var qs = forceRefresh ? '?refresh=1' : '';
+        var resp = await fetch('/api/hk_sectors' + qs);
         var result = await resp.json();
 
         if (result.success) {
+          hkSectorLastResult = result;
+          hkSectorCurrentDate = (result.date || '').replace(/-/g, '');
           renderHKSectorTable(result.sectors || []);
           updateHKSectorInfo(result);
           hkSectorDataLoaded = true;
+          updateHKDateDisplay();
         } else {
-          container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);">' + (result.message || '加载失败') + '</div>';
+          container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);">' + escapeHtml(result.message || '加载失败') + '</div>';
         }
       } catch (e) {
         container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);">请求失败</div>';
@@ -2564,9 +2602,11 @@
       var maxAmount = filtered[0].amount || 1;
 
       var html = '<table><thead><tr>' +
-        '<th style="width:60px">排名</th>' +
+        '<th style="width:56px">排名</th>' +
         '<th>板块名称</th>' +
         '<th>成交额(港元)</th>' +
+        '<th>上日成交额</th>' +
+        '<th>较前日变化</th>' +
         '<th>涨跌幅</th>' +
         '<th>股票数量</th>' +
         '<th>涨跌分布</th>' +
@@ -2577,14 +2617,21 @@
         var changePct = item.avg_change || 0;
         var changeCls = changePct > 0 ? 'up' : changePct < 0 ? 'down' : 'flat';
         var sign = changePct > 0 ? '+' : '';
-        var amountDisplay = formatHKDAmount(item.amount);
+        var amountDisplay = item.amount_display || formatHKDAmount(item.amount);
+        var prevDisp = item.prev_amount_display || formatHKDAmount(item.prev_amount);
+        var chgDisp = item.amount_change_display != null ? item.amount_change_display : '--';
+        var chgVal = item.amount_change || 0;
+        var chgCls = chgVal > 0 ? 'up' : chgVal < 0 ? 'down' : 'flat';
+        var safeName = String(item.name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
         html += '<tr>' +
           '<td><span class="rank ' + (idx < 3 ? 'top' : '') + '">' + (idx + 1) + '</span></td>' +
-          '<td><span class="board-name">' + item.name + '</span></td>' +
+          '<td><span class="board-name">' + escapeHtml(item.name) + '</span></td>' +
           '<td><div class="amount-val">' + amountDisplay + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
+          '<td style="color:var(--text-secondary);font-size:13px;">' + prevDisp + '</td>' +
+          '<td><span class="change-badge ' + chgCls + '">' + escapeHtml(String(chgDisp)) + '</span></td>' +
           '<td><span class="change-badge ' + changeCls + '">' + sign + changePct.toFixed(2) + '%</span></td>' +
-          '<td style="color:var(--text-secondary)">' + (item.stock_count || '--') + '只</td>' +
+          '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openHKStockModal(\'' + safeName + '\')" title="查看成分股">' + (item.stock_count || '--') + '只 📋</td>' +
           '<td><span class="rise-fall"><span class="rise">涨' + (item.rise || 0) + '</span> / <span class="fall">跌' + (item.fall || 0) + '</span></span></td>' +
           '</tr>';
       });
@@ -2595,24 +2642,93 @@
 
     function updateHKSectorInfo(result) {
       var count = result.sectors ? result.sectors.length : 0;
-      document.getElementById('hkSectorCount').textContent = '共 ' + count + ' 个板块';
-      if (result.date) {
-        document.getElementById('hkSectorTableSubtitle').textContent = '数据日期: ' + result.date + ' | 共 ' + count + ' 个板块';
+      document.getElementById('hkSectorCount').textContent = '共 ' + count + ' 个行业/板块';
+      var sub = '数据日期: ' + (result.date || '') + ' | 东财全市场港股按「所属行业」聚合 | 共 ' + count + ' 类';
+      if (result.prev_date) {
+        sub += ' | 对比上日快照: ' + result.prev_date;
+      } else {
+        sub += ' | 尚无历史快照，刷新后将开始累计「上日成交额」对比';
+      }
+      document.getElementById('hkSectorTableSubtitle').textContent = sub;
+      document.getElementById('hkSectorTime').textContent = '更新: ' + new Date().toLocaleString('zh-CN');
+    }
+
+    function openHKStockModal(sectorName) {
+      document.getElementById('hkStockModalTitle').textContent = sectorName + ' - 港股成分股';
+      document.getElementById('hkStockModalSubtitle').textContent = '';
+      document.getElementById('hkStockModal').style.display = 'flex';
+      loadHKBoardStocks(sectorName);
+    }
+
+    function closeHKStockModal() {
+      document.getElementById('hkStockModal').style.display = 'none';
+    }
+
+    async function loadHKBoardStocks(sectorName) {
+      var tbody = document.getElementById('hkStockTableBody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
+      try {
+        var url = '/api/hk_board_stocks/' + encodeURIComponent(sectorName);
+        var resp = await fetch(url);
+        var result = await resp.json();
+        if (!result.success) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--red);">' + escapeHtml(result.message || '加载失败') + '</td></tr>';
+          return;
+        }
+        var prev = result.prev_date || '';
+        document.getElementById('hkStockModalSubtitle').textContent =
+          '共 ' + (result.total_count || 0) + ' 只' + (prev ? ' | 成交额对比基准日: ' + prev : '');
+        var html = '';
+        (result.data || []).forEach(function(s) {
+          var changeCls = s.change_pct > 0 ? 'up' : s.change_pct < 0 ? 'down' : 'flat';
+          var sign = s.change_pct > 0 ? '+' : '';
+          var priceCls = s.price > s.pre_close ? 'color:var(--red)' : s.price < s.pre_close ? 'color:var(--green)' : 'color:var(--text)';
+          var achgCls = 'flat';
+          var ad = s.amount_change_display || '--';
+          if (ad.indexOf('+') === 0) achgCls = 'up';
+          else if (ad.indexOf('-') === 0) achgCls = 'down';
+          html += '<tr style="border-bottom:1px solid var(--border);">' +
+            '<td style="padding:10px 14px;text-align:right;font-size:13px;color:var(--text-secondary);">' + (s.pre_close ? s.pre_close.toFixed(3) : '--') + '</td>' +
+            '<td style="padding:10px 14px;">' +
+              '<span style="font-weight:500;">' + escapeHtml(s.name || '') + '</span> ' +
+              '<span style="font-size:11px;color:var(--text-secondary);font-family:monospace;">' + escapeHtml(s.code || '') + '</span>' +
+            '</td>' +
+            '<td style="padding:10px 14px;text-align:right;font-weight:600;">' + escapeHtml(s.amount_display || '') + '</td>' +
+            '<td style="padding:10px 14px;text-align:right;' + priceCls + '">' + (s.price != null ? Number(s.price).toFixed(3) : '--') + '</td>' +
+            '<td style="padding:10px 14px;text-align:right;"><span class="change-badge ' + changeCls + '">' + sign + Number(s.change_pct).toFixed(2) + '%</span></td>' +
+            '<td style="padding:10px 14px;text-align:right;"><span class="change-badge ' + achgCls + '">' + escapeHtml(String(ad)) + '</span></td>' +
+            '</tr>';
+        });
+        tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;padding:48px;">暂无成分股</td></tr>';
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--red);">请求失败</td></tr>';
       }
     }
+
+    document.getElementById('hkStockModal').addEventListener('click', function(e) {
+      if (e.target === this) closeHKStockModal();
+    });
 
     function searchHKSector() {
       var keyword = document.getElementById('hkSectorSearch').value.trim();
       hkSectorSearchKeyword = keyword;
       document.getElementById('hkSectorResetBtn').style.display = keyword ? 'inline-block' : 'none';
-      loadHKSectorData();
+      if (hkSectorLastResult && hkSectorLastResult.sectors) {
+        renderHKSectorTable(hkSectorLastResult.sectors);
+      } else {
+        loadHKSectorData(false);
+      }
     }
 
     function resetHKSectorSearch() {
       hkSectorSearchKeyword = '';
       document.getElementById('hkSectorSearch').value = '';
       document.getElementById('hkSectorResetBtn').style.display = 'none';
-      loadHKSectorData();
+      if (hkSectorLastResult && hkSectorLastResult.sectors) {
+        renderHKSectorTable(hkSectorLastResult.sectors);
+      } else {
+        loadHKSectorData(false);
+      }
     }
 
     function navigateHKDate(direction) {

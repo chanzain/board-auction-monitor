@@ -1,79 +1,86 @@
 """
-港股板块成交额数据 - 使用东方财富 API 获取港股实时数据，按行业板块聚合
-缓存策略：首次拉取全量数据，之后直接读缓存（秒开）
-说明：港股无严格集合竞价，用 开盘价×成交量 近似板块成交额
+港股板块成交额：东方财富全市场港股行情，按行业/板块字段动态聚合（覆盖主板+创业板等，不再用手动 10 板块列表）。
+说明：港股无 A 股式集合竞价，成交额为当日（或实时）累计成交额；与上一交易日保存的快照对比得到「昨日成交额」及增减。
 """
+
+from __future__ import annotations
 
 import json
 import time
-import requests
-from pathlib import Path
+from collections import defaultdict
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import requests
 
 DATA_DIR = Path(__file__).parent / "data"
 OUTPUT_FILE = DATA_DIR / "hk_sector_data.json"
 CACHE_FILE = DATA_DIR / "hk_stock_cache.json"
-CACHE_MAX_AGE_HOURS = 4  # 缓存有效期（小时）
+HK_HISTORY_DIR = DATA_DIR / "hk_sector_history"
+CACHE_MAX_AGE_HOURS = 2
 
-# 东方财富 港股实时行情接口
-EM_HK_PUSH_URL = "https://push2.eastmoney.com/api/qt/clist/get"
+# 最近一次拉取失败原因（供 API 返回给前端）
+HK_LAST_FETCH_ERROR: Optional[str] = None
 
-# 港股行业板块分类（手动维护主要成分股）
-# 板块名称与 EastMoney 港股行业分类对齐
-HK_SECTOR_STOCKS = {
-    "科技": [
-        "00700", "09988", "03690", "01024", "00285", "01810", "09618",
-        "01347", "09888", "06618", "02331", "09896", "00388", "09999",
-        "01833", "09626", "02269", "09868", "00992", "01797",
-    ],
-    "金融": [
-        "01398", "02318", "00939", "01299", "02388", "03988", "03328",
-        "01359", "01339", "02338", "06837", "09660", "08368", "08693",
-        "00267", "01988", "01551", "02888", "02318", "00005",
-    ],
-    "地产": [
-        "00016", "00012", "00017", "00083", "01038", "01109", "01213",
-        "02007", "03333", "02202", "00874", "00960", "01468", "03900",
-        "01564", "00813", "02382", "01668", "01918", "02013",
-    ],
-    "能源": [
-        "00883", "00386", "01211", "02883", "00857", "00338", "01138",
-        "02688", "00094", "01818", "06811", "09600", "01888", "09868",
-    ],
-    "医疗健康": [
-        "01093", "02269", "06618", "09618", "01258", "01530", "01177",
-        "01789", "09995", "02251", "01458", "03692", "06990", "01801",
-        "01513", "02359", "01072", "00874", "09633", "09866",
-    ],
-    "消费": [
-        "02319", "00241", "00874", "01299", "01579", "02238", "01787",
-        "00992", "02545", "09987", "01458", "02382", "09668", "00151",
-        "00868", "01880", "01336", "01988", "00522", "00493",
-    ],
-    "电信": [
-        "00762", "00941", "00728", "06869", "00823", "00315", "01762",
-        "01983", "01523", "01635", "02038", "00041", "00019", "00451",
-    ],
-    "公用事业": [
-        "00002", "00003", "00006", "00080", "00257", "00836", "01071",
-        "02688", "00051", "00012", "00016", "01972", "01686", "03868",
-    ],
-    "原材料": [
-        "01313", "01211", "01787", "00669", "00874", "00386", "01088",
-        "01258", "01818", "02338", "02899", "03328", "05138", "07608",
-    ],
-    "工业": [
-        "00011", "00017", "00165", "00267", "00322", "00323", "00511",
-        "00669", "00762", "00960", "01316", "01800", "02186", "02318",
-    ],
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "zh-CN,zh;q=0.9",
+    "Referer": "https://quote.eastmoney.com/center/gridlist.html",
 }
 
-# 港股代码前缀 -> 东方财富 market 参数
-# 港股在东方财富的 fs 参数格式：m:116+t:2 (港股主板)
+# 与 AkShare「stock_hk_spot_em」一致：全港股一条 fs（注意用空格，不是 +）
+HK_FS_UNIFIED = "m:128 t:3,m:128 t:4,m:128 t:1,m:128 t:2"
+
+# 东财 push2 多节点轮询（不同网络环境下可用节点不同）
+EM_PUSH_BASES = [
+    "https://72.push2.eastmoney.com/api/qt/clist/get",
+    "https://81.push2.eastmoney.com/api/qt/clist/get",
+    "https://33.push2.eastmoney.com/api/qt/clist/get",
+    "https://22.push2.eastmoney.com/api/qt/clist/get",
+    "https://42.push2.eastmoney.com/api/qt/clist/get",
+    "https://92.push2.eastmoney.com/api/qt/clist/get",
+    "https://push2.eastmoney.com/api/qt/clist/get",
+]
+
+# 备用 fs（+ 号写法，部分环境仍使用）
+HK_FS_FALLBACK = [
+    "m:128+t:3",
+    "m:128+t:4",
+    "m:116+t:3",
+]
 
 
-def fetch_hk_realtime_page(page=1, page_size=500):
-    """获取一页东方财富港股实时行情数据"""
+def get_hk_fetch_last_error() -> Optional[str]:
+    return HK_LAST_FETCH_ERROR
+
+
+def _to_float(val) -> float:
+    if val is None or val == "-" or val == "":
+        return 0.0
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def _pick_industry_label(stock: dict) -> str:
+    """东财个股所属行业/板块：优先 f100，其次 f127"""
+    for key in ("f100", "f127"):
+        raw = stock.get(key)
+        if raw is None:
+            continue
+        s = str(raw).strip()
+        if s and s not in ("-", "0", "—"):
+            return s
+    return "其他(未分类)"
+
+
+def _fetch_hk_clist_page(base_url: str, fs: str, page: int, page_size: int) -> dict:
     params = {
         "pn": str(page),
         "pz": str(page_size),
@@ -82,199 +89,417 @@ def fetch_hk_realtime_page(page=1, page_size=500):
         "ut": "bd1d9ddb04089700cf9c27f6f7426281",
         "fltt": "2",
         "invt": "2",
-        "fid": "f3",
-        "fs": "m:116+t:3",  # 港股（主板+创业板）
-        "fields": "f12,f14,f2,f3,f4,f5,f6,f15,f16,f17,f18",
+        "fid": "f12",
+        "fs": fs,
+        "fields": "f12,f14,f2,f3,f4,f5,f6,f15,f16,f17,f18,f100,f127",
         "_": str(int(time.time() * 1000)),
     }
-    resp = requests.get(EM_HK_PUSH_URL, params=params, timeout=15)
+    resp = requests.get(base_url, params=params, headers=HEADERS, timeout=28)
     resp.raise_for_status()
     return resp.json()
 
 
-def fetch_all_hk_realtime():
-    """获取全量港股实时行情"""
-    all_stocks = []
+def _fetch_all_pages_for_base_fs(base_url: str, fs: str) -> List[dict]:
+    all_stocks: List[dict] = []
     page = 1
     while True:
-        data = fetch_hk_realtime_page(page, 500)
-        diff = data.get("data", {}).get("diff", [])
+        data = _fetch_hk_clist_page(base_url, fs, page, 500)
+        diff = data.get("data", {}).get("diff") or []
         if not diff:
             break
         all_stocks.extend(diff)
-        total = data.get("data", {}).get("total", 0)
-        if len(all_stocks) >= total:
+        total = int(data.get("data", {}).get("total") or 0)
+        if total and len(all_stocks) >= total:
             break
         page += 1
-        time.sleep(0.3)
-
+        time.sleep(0.2)
     return all_stocks
 
 
-def get_hk_stock_map(force_refresh=False):
-    """
-    获取港股实时数据并缓存
-    返回: {ts_code: {name, price, volume, amount, change_pct}, ...}
-    """
-    cache_file = CACHE_FILE
-    output_file = OUTPUT_FILE
+def _fetch_via_akshare_spot_em() -> List[dict]:
+    import akshare as ak
 
-    # 检查缓存
-    if not force_refresh and cache_file.exists():
-        mtime = datetime.fromtimestamp(cache_file.stat().st_mtime)
-        age = datetime.now() - mtime
-        if age < timedelta(hours=CACHE_MAX_AGE_HOURS):
-            print("[港股] 使用缓存数据（新鲜度 < 4小时）...")
+    df = ak.stock_hk_spot_em()
+    out: List[dict] = []
+    for _, row in df.iterrows():
+        code = str(row["代码"]).strip()
+        if code.isdigit():
+            code = code.zfill(5)
+        out.append({
+            "f12": code,
+            "f14": row.get("名称", "") or "",
+            "f2": row.get("最新价"),
+            "f3": row.get("涨跌幅"),
+            "f5": row.get("成交量"),
+            "f6": row.get("成交额"),
+            "f18": row.get("昨收"),
+            "f100": None,
+            "f127": None,
+        })
+    return out
+
+
+def _fetch_via_sina_spot() -> List[dict]:
+    import akshare as ak
+
+    df = ak.stock_hk_spot()
+    out: List[dict] = []
+    for _, row in df.iterrows():
+        code = str(row.get("代码", "")).strip()
+        if code.isdigit():
+            code = code.zfill(5)
+        out.append({
+            "f12": code,
+            "f14": row.get("中文名称", "") or "",
+            "f2": row.get("最新价"),
+            "f3": row.get("涨跌幅"),
+            "f5": row.get("成交量"),
+            "f6": row.get("成交额"),
+            "f18": row.get("昨收"),
+            "f100": None,
+            "f127": None,
+        })
+    return out
+
+
+def fetch_merged_hk_raw() -> List[dict]:
+    """东财多节点 → 备用 fs → AkShare → 新浪"""
+    errors: List[str] = []
+
+    for base in EM_PUSH_BASES:
+        try:
+            raw = _fetch_all_pages_for_base_fs(base, HK_FS_UNIFIED)
+            if raw:
+                print(f"[港股] 东财全市场拉取成功 {base} 共 {len(raw)} 条")
+                return raw
+        except Exception as e:
+            errors.append(f"{base.split('/')[2]}:{type(e).__name__}")
+
+    for fs in HK_FS_FALLBACK:
+        for base in EM_PUSH_BASES[:5]:
             try:
-                with open(cache_file, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                # 确保数值字段为 float 类型
-                for code, info in cached.items():
-                    for key in ("price", "pre_close", "volume", "amount", "change_pct"):
-                        if key in info and not isinstance(info[key], (int, float)):
-                            info[key] = float(info[key]) if info[key] else 0.0
-                return cached
-            except Exception:
-                pass
+                raw = _fetch_all_pages_for_base_fs(base, fs)
+                if raw:
+                    print(f"[港股] 东财备用 fs={fs} {base} 共 {len(raw)} 条")
+                    return raw
+            except Exception as e:
+                errors.append(f"{fs}@{type(e).__name__}")
 
-    print("[港股] 正在从东方财富获取港股全量数据...")
     try:
-        raw = fetch_all_hk_realtime()
+        raw = _fetch_via_akshare_spot_em()
+        if raw:
+            print(f"[港股] 使用 AkShare stock_hk_spot_em 备用源，共 {len(raw)} 条（无行业字段，将归入未分类）")
+            return raw
     except Exception as e:
-        print(f"[港股] 获取数据失败: {e}")
-        # 尝试加载过期缓存
-        if cache_file.exists():
-            with open(cache_file, "r", encoding="utf-8") as f:
-                return json.load(f)
-        return None
+        errors.append(f"akshare:{e}")
 
-    result = {}
+    try:
+        raw = _fetch_via_sina_spot()
+        if raw:
+            print(f"[港股] 使用新浪港股列表备用源，共 {len(raw)} 条")
+            return raw
+    except Exception as e:
+        errors.append(f"sina:{e}")
+
+    detail = "; ".join(errors[:16]) if errors else "各源无返回"
+    raise RuntimeError(
+        "全部数据源失败或无有效港股列表。详情："
+        + detail
+        + "。请检查网络/代理，或稍后重试。"
+    )
+
+
+def raw_to_stock_map(raw: List[dict]) -> Dict[str, Dict[str, Any]]:
+    result: Dict[str, Dict[str, Any]] = {}
     for stock in raw:
         code = str(stock.get("f12", "")).strip()
         if not code:
             continue
-
-        def _to_float(val):
-            """安全转float， '-' 或 None 等无效值返回 0.0"""
-            if val is None or val == '-' or val == '':
-                return 0.0
-            try:
-                return float(val)
-            except (ValueError, TypeError):
-                return 0.0
-
-        price = _to_float(stock.get("f2"))       # 最新价
-        pre_close = _to_float(stock.get("f18"))   # 昨收
-        volume = _to_float(stock.get("f5"))       # 成交量（手）
-        amount = _to_float(stock.get("f6"))       # 成交额（港元）
-        change_pct = _to_float(stock.get("f3"))  # 涨跌幅(%)
+        if code.isdigit():
+            code = code.zfill(5)
+        industry = _pick_industry_label(stock)
+        price = _to_float(stock.get("f2"))
+        pre_close = _to_float(stock.get("f18"))
+        volume = _to_float(stock.get("f5"))
+        amount = _to_float(stock.get("f6"))
+        change_pct = _to_float(stock.get("f3"))
 
         result[code] = {
             "code": code,
-            "name": stock.get("f14", ""),
+            "name": stock.get("f14", "") or "",
             "price": price,
             "pre_close": pre_close,
             "volume": volume,
             "amount": amount,
             "change_pct": change_pct,
+            "industry": industry,
         }
-
-    print(f"[港股] 获取到 {len(result)} 只港股")
-
-    # 保存缓存
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False)
-    print(f"[港股] 缓存已保存: {cache_file}")
-
     return result
 
 
-def get_hk_sector_data(force_refresh=False):
-    """
-    获取港股各板块成交额
-    force_refresh: 是否强制重新拉取全量数据
-    返回: {"date": "2026-05-04", "sectors": [...]}
-    """
-    stock_map = get_hk_stock_map(force_refresh=force_refresh)
-    if stock_map is None:
-        print("[港股] 数据获取失败")
+def get_hk_stock_map(force_refresh: bool = False) -> Optional[Dict[str, Dict[str, Any]]]:
+    global HK_LAST_FETCH_ERROR
+    HK_LAST_FETCH_ERROR = None
+
+    if not force_refresh and CACHE_FILE.exists():
+        mtime = datetime.fromtimestamp(CACHE_FILE.stat().st_mtime)
+        if datetime.now() - mtime < timedelta(hours=CACHE_MAX_AGE_HOURS):
+            try:
+                with open(CACHE_FILE, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                sample = next(iter(cached.values()), {})
+                if "industry" not in sample:
+                    print("[港股] 缓存无行业字段，将重新拉取…")
+                else:
+                    for _c, info in cached.items():
+                        for key in ("price", "pre_close", "volume", "amount", "change_pct"):
+                            if key in info and not isinstance(info[key], (int, float)):
+                                info[key] = float(info[key] or 0)
+                    print("[港股] 使用本地缓存（<2h）")
+                    return cached
+            except Exception:
+                pass
+
+    print("[港股] 正在拉取全市场港股行情（多市场合并）...")
+    try:
+        raw = fetch_merged_hk_raw()
+    except Exception as e:
+        print(f"[港股] 拉取失败: {e}")
+        HK_LAST_FETCH_ERROR = str(e)
+        if CACHE_FILE.exists():
+            with open(CACHE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
         return None
 
-    trade_date = datetime.now().strftime("%Y-%m-%d")
+    stock_map = raw_to_stock_map(raw)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with open(CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(stock_map, f, ensure_ascii=False)
+    print(f"[港股] 已缓存 {len(stock_map)} 只股票: {CACHE_FILE}")
+    return stock_map
 
-    # 按板块聚合
-    results = []
-    for sector_name, codes in HK_SECTOR_STOCKS.items():
-        stocks_in_sector = []
-        total_amount = 0.0
-        changes = []
 
-        for code in codes:
-            if code in stock_map:
-                info = stock_map[code]
-                stocks_in_sector.append(info)
-                total_amount += info["amount"]
-                changes.append(info["change_pct"])
+def _history_sector_path(d: str) -> Path:
+    return HK_HISTORY_DIR / f"sector_{d}.json"
 
-        if not stocks_in_sector:
-            continue
 
-        # 平均涨跌幅
+def _history_stocks_path(d: str) -> Path:
+    return HK_HISTORY_DIR / f"stocks_{d}.json"
+
+
+def find_prev_hk_snapshot_date(today_str: str) -> Optional[str]:
+    """在已落盘历史中找早于 today 的最近一日（近似上一港股交易日）"""
+    HK_HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    start = datetime.strptime(today_str, "%Y-%m-%d")
+    for i in range(1, 21):
+        dt = start - timedelta(days=i)
+        ds = dt.strftime("%Y-%m-%d")
+        if _history_sector_path(ds).exists():
+            return ds
+    return None
+
+
+def load_prev_sector_amount_map(prev_date: Optional[str]) -> Dict[str, float]:
+    if not prev_date:
+        return {}
+    p = _history_sector_path(prev_date)
+    if not p.exists():
+        return {}
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    out: Dict[str, float] = {}
+    for s in data.get("sectors", []):
+        name = s.get("name")
+        if name:
+            out[str(name)] = float(s.get("amount") or 0)
+    return out
+
+
+def load_prev_stock_amount_map(prev_date: Optional[str]) -> Dict[str, float]:
+    if not prev_date:
+        return {}
+    p = _history_stocks_path(prev_date)
+    if not p.exists():
+        return {}
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    stocks = data.get("stocks", {})
+    return {str(k): float(v.get("amount") or 0) for k, v in stocks.items()}
+
+
+def aggregate_sectors(
+    stock_map: Dict[str, Dict[str, Any]],
+    prev_sector_amount: Dict[str, float],
+) -> List[Dict[str, Any]]:
+    buckets: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    sector_codes: Dict[str, List[str]] = defaultdict(list)
+
+    for code, info in stock_map.items():
+        ind = info.get("industry") or "其他(未分类)"
+        buckets[ind].append(info)
+        sector_codes[ind].append(code)
+
+    results: List[Dict[str, Any]] = []
+    for sector_name, stocks in buckets.items():
+        total_amount = sum(float(s.get("amount") or 0) for s in stocks)
+        changes = [float(s.get("change_pct") or 0) for s in stocks]
         avg_change = round(sum(changes) / len(changes), 2) if changes else 0.0
-
-        # 涨跌家数
         rise = sum(1 for c in changes if c > 0)
         fall = sum(1 for c in changes if c < 0)
 
-        # 按成交额排序，取前10
-        stocks_in_sector.sort(key=lambda x: x["amount"], reverse=True)
+        prev_amt = float(prev_sector_amount.get(sector_name, 0) or 0)
+        amt_change = total_amount - prev_amt
 
         results.append({
             "name": sector_name,
             "amount": total_amount,
-            "stock_count": len(stocks_in_sector),
+            "prev_amount": prev_amt,
+            "amount_change": amt_change,
+            "stock_count": len(stocks),
             "avg_change": avg_change,
             "rise": rise,
             "fall": fall,
-            "top_stocks": stocks_in_sector[:10],
+            "codes": sorted(sector_codes[sector_name]),
         })
 
-    # 按成交额排序
     results.sort(key=lambda x: x["amount"], reverse=True)
+    return results
 
-    return {
+
+def save_daily_snapshots(trade_date: str, sectors: List[Dict[str, Any]], stock_map: Dict[str, Dict[str, Any]]):
+    HK_HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    slim_sectors = []
+    for s in sectors:
+        slim_sectors.append({
+            "name": s["name"],
+            "amount": s["amount"],
+            "stock_count": s["stock_count"],
+            "avg_change": s["avg_change"],
+            "rise": s["rise"],
+            "fall": s["fall"],
+            "codes": s.get("codes", []),
+        })
+    sector_payload = {"date": trade_date, "sectors": slim_sectors}
+    _history_sector_path(trade_date).write_text(
+        json.dumps(sector_payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    stocks_payload = {
         "date": trade_date,
-        "sectors": results,
+        "stocks": {
+            code: {
+                "amount": float(info.get("amount") or 0),
+                "name": info.get("name", ""),
+                "change_pct": float(info.get("change_pct") or 0),
+            }
+            for code, info in stock_map.items()
+        },
     }
+    _history_stocks_path(trade_date).write_text(
+        json.dumps(stocks_payload, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    print(f"[港股] 已写入历史快照: {trade_date}")
 
 
-def save_hk_sector_data(data):
+def get_hk_sector_data(force_refresh: bool = False) -> Optional[Dict[str, Any]]:
+    stock_map = get_hk_stock_map(force_refresh=force_refresh)
+    if not stock_map:
+        return None
+
+    trade_date = datetime.now().strftime("%Y-%m-%d")
+    prev_date = find_prev_hk_snapshot_date(trade_date)
+    prev_sector_amt = load_prev_sector_amount_map(prev_date)
+
+    sectors = aggregate_sectors(stock_map, prev_sector_amt)
+
+    save_daily_snapshots(trade_date, sectors, stock_map)
+
+    # 返回给前端：去掉 codes 过大时可保留（成分股 API 用 industry 重算）
+    sectors_out = []
+    for s in sectors:
+        sectors_out.append({
+            "name": s["name"],
+            "amount": s["amount"],
+            "prev_amount": s["prev_amount"],
+            "amount_change": s["amount_change"],
+            "stock_count": s["stock_count"],
+            "avg_change": s["avg_change"],
+            "rise": s["rise"],
+            "fall": s["fall"],
+        })
+
+    out = {
+        "date": trade_date,
+        "prev_date": prev_date,
+        "sectors": sectors_out,
+    }
+    save_hk_sector_data(out)
+    return out
+
+
+def save_hk_sector_data(data: Dict[str, Any]):
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    print(f"[港股] 板块数据已保存: {OUTPUT_FILE}")
 
 
-def load_hk_sector_data():
+def load_hk_sector_data() -> Optional[Dict[str, Any]]:
     if not OUTPUT_FILE.exists():
         return None
     with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-if __name__ == "__main__":
-    print("=" * 60)
-    print("  港股板块成交额数据抓取")
-    print("  说明：港股无集合竞价，用 最新价×成交量 近似")
-    print("=" * 60)
-    data = get_hk_sector_data(force_refresh=True)
-    if data:
-        save_hk_sector_data(data)
-        print(f"\n数据日期: {data['date']}")
-        print(f"板块数: {len(data['sectors'])}")
-        print("\n各板块成交额:")
-        for s in data["sectors"]:
-            print(f"  {s['name']}: {s['amount']:,.0f} ({s['stock_count']}只) 涨跌: {s['avg_change']}%")
+def get_constituents_for_sector(
+    sector_name: str,
+    stock_map: Optional[Dict[str, Dict[str, Any]]] = None,
+    prev_stock_amount: Optional[Dict[str, float]] = None,
+) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+    """某行业板块下全部成分股（用于弹窗）"""
+    if stock_map is None:
+        stock_map = get_hk_stock_map(force_refresh=False) or {}
+    trade_date = datetime.now().strftime("%Y-%m-%d")
+    prev_date = find_prev_hk_snapshot_date(trade_date)
+    if prev_stock_amount is None:
+        prev_stock_amount = load_prev_stock_amount_map(prev_date)
+
+    rows: List[Dict[str, Any]] = []
+    for code, info in stock_map.items():
+        if (info.get("industry") or "") != sector_name:
+            continue
+        amt = float(info.get("amount") or 0)
+        prev_amt = float(prev_stock_amount.get(code, 0) or 0)
+        chg = amt - prev_amt
+        prev_pct = info.get("change_pct")
+        rows.append({
+            "code": code,
+            "name": info.get("name", ""),
+            "amount": amt,
+            "price": float(info.get("price") or 0),
+            "pre_close": float(info.get("pre_close") or 0),
+            "change_pct": round(float(info.get("change_pct") or 0), 2),
+            "prev_amount": prev_amt,
+            "amount_change": chg,
+        })
+
+    rows.sort(key=lambda x: x["change_pct"], reverse=True)
+    return rows, prev_date
+
+
+def format_hk_amount_change_display(amt_change: float) -> str:
+    if amt_change == 0:
+        return "0"
+    a = abs(amt_change)
+    if a >= 1e8:
+        disp = f"{a / 1e8:.2f}亿"
+    elif a >= 1e4:
+        disp = f"{a / 1e4:.2f}万"
     else:
-        print("数据获取失败")
+        disp = f"{a:.0f}"
+    return ("+" if amt_change > 0 else "-") + disp

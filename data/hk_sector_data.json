@@ -1,0 +1,16 @@
+{
+  "date": "2026-05-07",
+  "prev_date": null,
+  "sectors": [
+    {
+      "name": "其他(未分类)",
+      "amount": 247026526839.0,
+      "prev_amount": 0.0,
+      "amount_change": 247026526839.0,
+      "stock_count": 2753,
+      "avg_change": 0.03,
+      "rise": 988,
+      "fall": 1050
+    }
+  ]
+}
