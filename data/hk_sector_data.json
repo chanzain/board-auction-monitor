@@ -3,14 +3,3534 @@
   "prev_date": null,
   "sectors": [
     {
-      "name": "其他(未分类)",
-      "amount": 247026526839.0,
+      "name": "软件服务",
+      "amount": 35402526767.0,
       "prev_amount": 0.0,
-      "amount_change": 247026526839.0,
-      "stock_count": 2753,
+      "amount_change": 35402526767.0,
+      "stock_count": 162,
+      "avg_change": 2.59,
+      "rise": 102,
+      "fall": 34
+    },
+    {
+      "name": "半导体",
+      "amount": 23898414076.0,
+      "prev_amount": 0.0,
+      "amount_change": 23898414076.0,
+      "stock_count": 34,
+      "avg_change": 4.25,
+      "rise": 21,
+      "fall": 10
+    },
+    {
+      "name": "工业工程",
+      "amount": 22978019156.0,
+      "prev_amount": 0.0,
+      "amount_change": 22978019156.0,
+      "stock_count": 220,
+      "avg_change": 1.73,
+      "rise": 113,
+      "fall": 56
+    },
+    {
+      "name": "专业零售",
+      "amount": 22257838113.0,
+      "prev_amount": 0.0,
+      "amount_change": 22257838113.0,
+      "stock_count": 81,
+      "avg_change": 1.97,
+      "rise": 52,
+      "fall": 14
+    },
+    {
+      "name": "1.98",
+      "amount": 15429892040.0,
+      "prev_amount": 0.0,
+      "amount_change": 15429892040.0,
+      "stock_count": 2,
+      "avg_change": 1.81,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "药品及生物科技",
+      "amount": 14994481115.0,
+      "prev_amount": 0.0,
+      "amount_change": 14994481115.0,
+      "stock_count": 163,
+      "avg_change": 0.74,
+      "rise": 96,
+      "fall": 44
+    },
+    {
+      "name": "资讯科技器材",
+      "amount": 14595981032.0,
+      "prev_amount": 0.0,
+      "amount_change": 14595981032.0,
+      "stock_count": 64,
+      "avg_change": 1.78,
+      "rise": 36,
+      "fall": 13
+    },
+    {
+      "name": "媒体及娱乐",
+      "amount": 12344383151.0,
+      "prev_amount": 0.0,
+      "amount_change": 12344383151.0,
+      "stock_count": 115,
+      "avg_change": 0.72,
+      "rise": 52,
+      "fall": 33
+    },
+    {
+      "name": "保险",
+      "amount": 11559601786.0,
+      "prev_amount": 0.0,
+      "amount_change": 11559601786.0,
+      "stock_count": 21,
+      "avg_change": 2.07,
+      "rise": 18,
+      "fall": 2
+    },
+    {
+      "name": "银行",
+      "amount": 10281725597.0,
+      "prev_amount": 0.0,
+      "amount_change": 10281725597.0,
+      "stock_count": 38,
+      "avg_change": 0.33,
+      "rise": 23,
+      "fall": 9
+    },
+    {
+      "name": "石油及天然气",
+      "amount": 10123051100.0,
+      "prev_amount": 0.0,
+      "amount_change": 10123051100.0,
+      "stock_count": 48,
+      "avg_change": -0.94,
+      "rise": 15,
+      "fall": 24
+    },
+    {
+      "name": "家庭电器及用品",
+      "amount": 9470887443.0,
+      "prev_amount": 0.0,
+      "amount_change": 9470887443.0,
+      "stock_count": 90,
+      "avg_change": 0.75,
+      "rise": 34,
+      "fall": 27
+    },
+    {
+      "name": "一般金属及矿石",
+      "amount": 8473068423.0,
+      "prev_amount": 0.0,
+      "amount_change": 8473068423.0,
+      "stock_count": 70,
+      "avg_change": 0.19,
+      "rise": 32,
+      "fall": 23
+    },
+    {
+      "name": "地产",
+      "amount": 8366254181.0,
+      "prev_amount": 0.0,
+      "amount_change": 8366254181.0,
+      "stock_count": 265,
+      "avg_change": 0.59,
+      "rise": 104,
+      "fall": 61
+    },
+    {
+      "name": "汽车",
+      "amount": 8296679766.0,
+      "prev_amount": 0.0,
+      "amount_change": 8296679766.0,
+      "stock_count": 51,
+      "avg_change": 1.08,
+      "rise": 32,
+      "fall": 11
+    },
+    {
+      "name": "黄金及贵金属",
+      "amount": 7894134051.0,
+      "prev_amount": 0.0,
+      "amount_change": 7894134051.0,
+      "stock_count": 18,
+      "avg_change": 3.81,
+      "rise": 16,
+      "fall": 1
+    },
+    {
+      "name": "其他金融",
+      "amount": 5281609672.0,
+      "prev_amount": 0.0,
+      "amount_change": 5281609672.0,
+      "stock_count": 169,
+      "avg_change": 0.84,
+      "rise": 75,
+      "fall": 50
+    },
+    {
+      "name": "1.58",
+      "amount": 4831885824.0,
+      "prev_amount": 0.0,
+      "amount_change": 4831885824.0,
+      "stock_count": 1,
+      "avg_change": 1.22,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "旅游及消闲设施",
+      "amount": 4268561200.0,
+      "prev_amount": 0.0,
+      "amount_change": 4268561200.0,
+      "stock_count": 134,
+      "avg_change": 0.87,
+      "rise": 63,
+      "fall": 25
+    },
+    {
+      "name": "31.33",
+      "amount": 4032855712.0,
+      "prev_amount": 0.0,
+      "amount_change": 4032855712.0,
+      "stock_count": 1,
+      "avg_change": 6.93,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.79",
+      "amount": 3797233165.0,
+      "prev_amount": 0.0,
+      "amount_change": 3797233165.0,
+      "stock_count": 2,
+      "avg_change": 2.77,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "公用事业",
+      "amount": 3646159365.0,
+      "prev_amount": 0.0,
+      "amount_change": 3646159365.0,
+      "stock_count": 76,
+      "avg_change": 0.27,
+      "rise": 34,
+      "fall": 19
+    },
+    {
+      "name": "电讯",
+      "amount": 3144987294.0,
+      "prev_amount": 0.0,
+      "amount_change": 3144987294.0,
+      "stock_count": 21,
+      "avg_change": -1.28,
+      "rise": 10,
+      "fall": 8
+    },
+    {
+      "name": "煤炭",
+      "amount": 3035919165.0,
+      "prev_amount": 0.0,
+      "amount_change": 3035919165.0,
+      "stock_count": 22,
+      "avg_change": -2.27,
+      "rise": 2,
+      "fall": 16
+    },
+    {
+      "name": "工用运输",
+      "amount": 2896292391.0,
+      "prev_amount": 0.0,
+      "amount_change": 2896292391.0,
+      "stock_count": 68,
+      "avg_change": 0.7,
+      "rise": 27,
+      "fall": 18
+    },
+    {
+      "name": "纺织及服饰",
+      "amount": 2895381586.0,
+      "prev_amount": 0.0,
+      "amount_change": 2895381586.0,
+      "stock_count": 119,
+      "avg_change": 0.65,
+      "rise": 47,
+      "fall": 32
+    },
+    {
+      "name": "食物饮品",
+      "amount": 2869199883.0,
+      "prev_amount": 0.0,
+      "amount_change": 2869199883.0,
+      "stock_count": 96,
+      "avg_change": 0.11,
+      "rise": 37,
+      "fall": 31
+    },
+    {
+      "name": "37.33",
+      "amount": 2348258928.0,
+      "prev_amount": 0.0,
+      "amount_change": 2348258928.0,
+      "stock_count": 1,
+      "avg_change": 6.54,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "综合企业",
+      "amount": 2034143593.0,
+      "prev_amount": 0.0,
+      "amount_change": 2034143593.0,
+      "stock_count": 21,
+      "avg_change": 2.92,
+      "rise": 13,
+      "fall": 2
+    },
+    {
+      "name": "建筑",
+      "amount": 1727132728.0,
+      "prev_amount": 0.0,
+      "amount_change": 1727132728.0,
+      "stock_count": 218,
+      "avg_change": 0.51,
+      "rise": 78,
+      "fall": 64
+    },
+    {
+      "name": "其他医疗保健",
+      "amount": 1698679372.0,
+      "prev_amount": 0.0,
+      "amount_change": 1698679372.0,
+      "stock_count": 129,
+      "avg_change": 0.78,
+      "rise": 67,
+      "fall": 31
+    },
+    {
+      "name": "5.63",
+      "amount": 1645121024.0,
+      "prev_amount": 0.0,
+      "amount_change": 1645121024.0,
+      "stock_count": 1,
+      "avg_change": 6.01,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-5.67",
+      "amount": 901344464.0,
+      "prev_amount": 0.0,
+      "amount_change": 901344464.0,
+      "stock_count": 1,
+      "avg_change": -5.9,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "原材料",
+      "amount": 808980942.0,
+      "prev_amount": 0.0,
+      "amount_change": 808980942.0,
+      "stock_count": 57,
+      "avg_change": -0.3,
+      "rise": 20,
+      "fall": 18
+    },
+    {
+      "name": "3.48",
+      "amount": 683401064.0,
+      "prev_amount": 0.0,
+      "amount_change": 683401064.0,
+      "stock_count": 2,
+      "avg_change": 1.27,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "-4.04",
+      "amount": 384366672.0,
+      "prev_amount": 0.0,
+      "amount_change": 384366672.0,
+      "stock_count": 1,
+      "avg_change": -3.35,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.95",
+      "amount": 330717488.0,
+      "prev_amount": 0.0,
+      "amount_change": 330717488.0,
+      "stock_count": 1,
+      "avg_change": 3.17,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.87",
+      "amount": 318077792.0,
+      "prev_amount": 0.0,
+      "amount_change": 318077792.0,
+      "stock_count": 1,
+      "avg_change": 3.26,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "支援服务",
+      "amount": 278727221.0,
+      "prev_amount": 0.0,
+      "amount_change": 278727221.0,
+      "stock_count": 87,
+      "avg_change": 0.29,
+      "rise": 30,
+      "fall": 27
+    },
+    {
+      "name": "农业产品",
+      "amount": 266421273.0,
+      "prev_amount": 0.0,
+      "amount_change": 266421273.0,
+      "stock_count": 21,
+      "avg_change": 1.31,
+      "rise": 11,
+      "fall": 6
+    },
+    {
+      "name": "工用支援",
+      "amount": 258158033.0,
+      "prev_amount": 0.0,
+      "amount_change": 258158033.0,
+      "stock_count": 51,
+      "avg_change": 1.17,
+      "rise": 20,
+      "fall": 13
+    },
+    {
+      "name": "2.52",
+      "amount": 248103629.0,
+      "prev_amount": 0.0,
+      "amount_change": 248103629.0,
+      "stock_count": 3,
+      "avg_change": 2.05,
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "3.33",
+      "amount": 191484006.0,
+      "prev_amount": 0.0,
+      "amount_change": 191484006.0,
+      "stock_count": 3,
+      "avg_change": 3.02,
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "消费者主要零售商",
+      "amount": 155736059.0,
+      "prev_amount": 0.0,
+      "amount_change": 155736059.0,
+      "stock_count": 23,
+      "avg_change": -0.39,
+      "rise": 7,
+      "fall": 10
+    },
+    {
+      "name": "0.58",
+      "amount": 134615293.0,
+      "prev_amount": 0.0,
+      "amount_change": 134615293.0,
+      "stock_count": 1,
+      "avg_change": 0.42,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.17",
+      "amount": 110520819.0,
+      "prev_amount": 0.0,
+      "amount_change": 110520819.0,
+      "stock_count": 1,
+      "avg_change": 2.82,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.68",
+      "amount": 103567004.0,
+      "prev_amount": 0.0,
+      "amount_change": 103567004.0,
+      "stock_count": 2,
+      "avg_change": 0.25,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "1.53",
+      "amount": 101886000.0,
+      "prev_amount": 0.0,
+      "amount_change": 101886000.0,
+      "stock_count": 2,
+      "avg_change": 0.75,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "1.37",
+      "amount": 80920298.0,
+      "prev_amount": 0.0,
+      "amount_change": 80920298.0,
+      "stock_count": 1,
+      "avg_change": 0.45,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.81",
+      "amount": 76741451.0,
+      "prev_amount": 0.0,
+      "amount_change": 76741451.0,
+      "stock_count": 3,
+      "avg_change": 1.14,
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "7.34",
+      "amount": 75726140.0,
+      "prev_amount": 0.0,
+      "amount_change": 75726140.0,
+      "stock_count": 1,
+      "avg_change": 1.95,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "7.28",
+      "amount": 42682899.0,
+      "prev_amount": 0.0,
+      "amount_change": 42682899.0,
+      "stock_count": 1,
+      "avg_change": 2.93,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.98",
+      "amount": 40905412.0,
+      "prev_amount": 0.0,
+      "amount_change": 40905412.0,
+      "stock_count": 1,
+      "avg_change": 0.06,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.38",
+      "amount": 39211962.0,
+      "prev_amount": 0.0,
+      "amount_change": 39211962.0,
+      "stock_count": 2,
+      "avg_change": -0.14,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "3.47",
+      "amount": 37005680.0,
+      "prev_amount": 0.0,
+      "amount_change": 37005680.0,
+      "stock_count": 1,
+      "avg_change": 1.4,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-6.19",
+      "amount": 29833313.0,
+      "prev_amount": 0.0,
+      "amount_change": 29833313.0,
+      "stock_count": 1,
+      "avg_change": -3.23,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.93",
+      "amount": 24784762.0,
+      "prev_amount": 0.0,
+      "amount_change": 24784762.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "10.12",
+      "amount": 24726227.0,
+      "prev_amount": 0.0,
+      "amount_change": 24726227.0,
+      "stock_count": 1,
+      "avg_change": 2.78,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "8.95",
+      "amount": 24540463.0,
+      "prev_amount": 0.0,
+      "amount_change": 24540463.0,
+      "stock_count": 1,
+      "avg_change": 1.56,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-34.42",
+      "amount": 23072376.0,
+      "prev_amount": 0.0,
+      "amount_change": 23072376.0,
+      "stock_count": 1,
+      "avg_change": -7.34,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.75",
+      "amount": 19607792.0,
+      "prev_amount": 0.0,
+      "amount_change": 19607792.0,
+      "stock_count": 1,
+      "avg_change": 0.69,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.03",
+      "amount": 18161783.0,
+      "prev_amount": 0.0,
+      "amount_change": 18161783.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "2.68",
+      "amount": 16989718.0,
+      "prev_amount": 0.0,
+      "amount_change": 16989718.0,
+      "stock_count": 2,
+      "avg_change": 2.04,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "4.82",
+      "amount": 16774799.0,
+      "prev_amount": 0.0,
+      "amount_change": 16774799.0,
+      "stock_count": 1,
+      "avg_change": 3.72,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.17",
+      "amount": 15986700.0,
+      "prev_amount": 0.0,
+      "amount_change": 15986700.0,
+      "stock_count": 1,
+      "avg_change": 1.56,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "6.1",
+      "amount": 15981129.0,
+      "prev_amount": 0.0,
+      "amount_change": 15981129.0,
+      "stock_count": 1,
+      "avg_change": 3.01,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-11.42",
+      "amount": 15230646.0,
+      "prev_amount": 0.0,
+      "amount_change": 15230646.0,
+      "stock_count": 1,
+      "avg_change": -7.33,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-9.04",
+      "amount": 15101140.0,
+      "prev_amount": 0.0,
+      "amount_change": 15101140.0,
+      "stock_count": 1,
+      "avg_change": -4.92,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.43",
+      "amount": 15069925.0,
+      "prev_amount": 0.0,
+      "amount_change": 15069925.0,
+      "stock_count": 2,
+      "avg_change": 3.82,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "-1.3",
+      "amount": 13972314.0,
+      "prev_amount": 0.0,
+      "amount_change": 13972314.0,
+      "stock_count": 1,
+      "avg_change": -1.44,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.12",
+      "amount": 11934664.0,
+      "prev_amount": 0.0,
+      "amount_change": 11934664.0,
+      "stock_count": 1,
+      "avg_change": 1.26,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.82",
+      "amount": 11520272.0,
+      "prev_amount": 0.0,
+      "amount_change": 11520272.0,
+      "stock_count": 2,
+      "avg_change": 1.56,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.78",
+      "amount": 11488604.0,
+      "prev_amount": 0.0,
+      "amount_change": 11488604.0,
+      "stock_count": 1,
+      "avg_change": 0.36,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-7.66",
+      "amount": 11345110.0,
+      "prev_amount": 0.0,
+      "amount_change": 11345110.0,
+      "stock_count": 1,
+      "avg_change": -5.0,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "7.39",
+      "amount": 11186321.0,
+      "prev_amount": 0.0,
+      "amount_change": 11186321.0,
+      "stock_count": 1,
+      "avg_change": 1.96,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-3.09",
+      "amount": 10463606.0,
+      "prev_amount": 0.0,
+      "amount_change": 10463606.0,
+      "stock_count": 1,
+      "avg_change": -2.7,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.0",
+      "amount": 9590240.0,
+      "prev_amount": 0.0,
+      "amount_change": 9590240.0,
+      "stock_count": 84,
+      "avg_change": -0.03,
+      "rise": 0,
+      "fall": 3
+    },
+    {
+      "name": "1.83",
+      "amount": 8732011.0,
+      "prev_amount": 0.0,
+      "amount_change": 8732011.0,
+      "stock_count": 1,
+      "avg_change": 0.95,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.41",
+      "amount": 8457246.0,
+      "prev_amount": 0.0,
+      "amount_change": 8457246.0,
+      "stock_count": 1,
+      "avg_change": 2.19,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.31",
+      "amount": 8117564.0,
+      "prev_amount": 0.0,
+      "amount_change": 8117564.0,
+      "stock_count": 1,
+      "avg_change": 0.1,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "36.67",
+      "amount": 8017143.0,
+      "prev_amount": 0.0,
+      "amount_change": 8017143.0,
+      "stock_count": 1,
+      "avg_change": 6.74,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "8.79",
+      "amount": 7668513.0,
+      "prev_amount": 0.0,
+      "amount_change": 7668513.0,
+      "stock_count": 1,
+      "avg_change": 12.89,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.13",
+      "amount": 7467672.0,
+      "prev_amount": 0.0,
+      "amount_change": 7467672.0,
+      "stock_count": 1,
+      "avg_change": 1.52,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.38",
+      "amount": 7346322.0,
+      "prev_amount": 0.0,
+      "amount_change": 7346322.0,
+      "stock_count": 1,
+      "avg_change": -1.38,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "5.56",
+      "amount": 6713918.0,
+      "prev_amount": 0.0,
+      "amount_change": 6713918.0,
+      "stock_count": 1,
+      "avg_change": 1.82,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.01",
+      "amount": 6699569.0,
+      "prev_amount": 0.0,
+      "amount_change": 6699569.0,
+      "stock_count": 1,
+      "avg_change": -0.05,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "2.04",
+      "amount": 6195966.0,
+      "prev_amount": 0.0,
+      "amount_change": 6195966.0,
+      "stock_count": 1,
+      "avg_change": 1.73,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.28",
+      "amount": 6021566.0,
+      "prev_amount": 0.0,
+      "amount_change": 6021566.0,
+      "stock_count": 2,
+      "avg_change": -0.94,
+      "rise": 0,
+      "fall": 2
+    },
+    {
+      "name": "2.38",
+      "amount": 5786725.0,
+      "prev_amount": 0.0,
+      "amount_change": 5786725.0,
+      "stock_count": 1,
+      "avg_change": 1.01,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.99",
+      "amount": 5734796.0,
+      "prev_amount": 0.0,
+      "amount_change": 5734796.0,
+      "stock_count": 1,
+      "avg_change": 3.52,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.92",
+      "amount": 5734226.0,
+      "prev_amount": 0.0,
+      "amount_change": 5734226.0,
+      "stock_count": 1,
+      "avg_change": 2.37,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-5.9",
+      "amount": 5306915.0,
+      "prev_amount": 0.0,
+      "amount_change": 5306915.0,
+      "stock_count": 1,
+      "avg_change": -3.13,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.2",
+      "amount": 5131030.0,
+      "prev_amount": 0.0,
+      "amount_change": 5131030.0,
+      "stock_count": 2,
+      "avg_change": 1.44,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.91",
+      "amount": 5093973.0,
+      "prev_amount": 0.0,
+      "amount_change": 5093973.0,
+      "stock_count": 2,
+      "avg_change": 0.89,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "1.71",
+      "amount": 4822600.0,
+      "prev_amount": 0.0,
+      "amount_change": 4822600.0,
+      "stock_count": 1,
+      "avg_change": 1.71,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.66",
+      "amount": 4378228.0,
+      "prev_amount": 0.0,
+      "amount_change": 4378228.0,
+      "stock_count": 3,
+      "avg_change": 1.87,
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "2.63",
+      "amount": 4254119.0,
+      "prev_amount": 0.0,
+      "amount_change": 4254119.0,
+      "stock_count": 2,
+      "avg_change": 2.19,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "9.63",
+      "amount": 4223387.0,
+      "prev_amount": 0.0,
+      "amount_change": 4223387.0,
+      "stock_count": 1,
+      "avg_change": 4.5,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.61",
+      "amount": 4093778.0,
+      "prev_amount": 0.0,
+      "amount_change": 4093778.0,
+      "stock_count": 1,
+      "avg_change": 0.92,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "7.57",
+      "amount": 4016328.0,
+      "prev_amount": 0.0,
+      "amount_change": 4016328.0,
+      "stock_count": 1,
+      "avg_change": 3.65,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.54",
+      "amount": 3958696.0,
+      "prev_amount": 0.0,
+      "amount_change": 3958696.0,
+      "stock_count": 1,
+      "avg_change": 2.95,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.39",
+      "amount": 3910882.0,
+      "prev_amount": 0.0,
+      "amount_change": 3910882.0,
+      "stock_count": 1,
+      "avg_change": 0.63,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.67",
+      "amount": 3900050.0,
+      "prev_amount": 0.0,
+      "amount_change": 3900050.0,
+      "stock_count": 1,
+      "avg_change": 0.31,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.07",
+      "amount": 3886320.0,
+      "prev_amount": 0.0,
+      "amount_change": 3886320.0,
+      "stock_count": 2,
+      "avg_change": 1.54,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "2.74",
+      "amount": 3722472.0,
+      "prev_amount": 0.0,
+      "amount_change": 3722472.0,
+      "stock_count": 1,
+      "avg_change": 1.35,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.47",
+      "amount": 3705148.0,
+      "prev_amount": 0.0,
+      "amount_change": 3705148.0,
+      "stock_count": 1,
+      "avg_change": 0.53,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.74",
+      "amount": 3441220.0,
+      "prev_amount": 0.0,
+      "amount_change": 3441220.0,
+      "stock_count": 1,
+      "avg_change": 1.12,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.36",
+      "amount": 3369946.0,
+      "prev_amount": 0.0,
+      "amount_change": 3369946.0,
+      "stock_count": 1,
+      "avg_change": -1.07,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "1.57",
+      "amount": 3298324.0,
+      "prev_amount": 0.0,
+      "amount_change": 3298324.0,
+      "stock_count": 2,
+      "avg_change": 0.45,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.51",
+      "amount": 3296858.0,
+      "prev_amount": 0.0,
+      "amount_change": 3296858.0,
+      "stock_count": 3,
+      "avg_change": 0.75,
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "11.32",
+      "amount": 3285758.0,
+      "prev_amount": 0.0,
+      "amount_change": 3285758.0,
+      "stock_count": 1,
+      "avg_change": 2.35,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.6",
+      "amount": 3285603.0,
+      "prev_amount": 0.0,
+      "amount_change": 3285603.0,
+      "stock_count": 1,
+      "avg_change": 3.1,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.08",
+      "amount": 3086657.0,
+      "prev_amount": 0.0,
+      "amount_change": 3086657.0,
+      "stock_count": 2,
+      "avg_change": 1.15,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "1.4",
+      "amount": 2997700.0,
+      "prev_amount": 0.0,
+      "amount_change": 2997700.0,
+      "stock_count": 1,
+      "avg_change": 1.22,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.31",
+      "amount": 2895005.0,
+      "prev_amount": 0.0,
+      "amount_change": 2895005.0,
+      "stock_count": 1,
+      "avg_change": 1.49,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.06",
+      "amount": 2873352.0,
+      "prev_amount": 0.0,
+      "amount_change": 2873352.0,
+      "stock_count": 2,
+      "avg_change": 1.67,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "2.92",
+      "amount": 2807725.0,
+      "prev_amount": 0.0,
+      "amount_change": 2807725.0,
+      "stock_count": 1,
+      "avg_change": -0.4,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.3",
+      "amount": 2673526.0,
+      "prev_amount": 0.0,
+      "amount_change": 2673526.0,
+      "stock_count": 2,
+      "avg_change": 0.62,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "1.66",
+      "amount": 2639392.0,
+      "prev_amount": 0.0,
+      "amount_change": 2639392.0,
+      "stock_count": 1,
+      "avg_change": 0.48,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.98",
+      "amount": 2522524.0,
+      "prev_amount": 0.0,
+      "amount_change": 2522524.0,
+      "stock_count": 1,
+      "avg_change": -1.42,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.92",
+      "amount": 2514169.0,
+      "prev_amount": 0.0,
+      "amount_change": 2514169.0,
+      "stock_count": 1,
+      "avg_change": 1.5,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.23",
+      "amount": 2301269.0,
+      "prev_amount": 0.0,
+      "amount_change": 2301269.0,
+      "stock_count": 3,
+      "avg_change": 0.3,
+      "rise": 2,
+      "fall": 1
+    },
+    {
+      "name": "5.18",
+      "amount": 2264061.0,
+      "prev_amount": 0.0,
+      "amount_change": 2264061.0,
+      "stock_count": 1,
+      "avg_change": 4.46,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "11.7",
+      "amount": 2149098.0,
+      "prev_amount": 0.0,
+      "amount_change": 2149098.0,
+      "stock_count": 1,
+      "avg_change": 5.98,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.39",
+      "amount": 2091040.0,
+      "prev_amount": 0.0,
+      "amount_change": 2091040.0,
+      "stock_count": 2,
+      "avg_change": 0.2,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.14",
+      "amount": 1982190.0,
+      "prev_amount": 0.0,
+      "amount_change": 1982190.0,
+      "stock_count": 1,
+      "avg_change": 1.6,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.11",
+      "amount": 1845805.0,
+      "prev_amount": 0.0,
+      "amount_change": 1845805.0,
+      "stock_count": 1,
+      "avg_change": -0.2,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-0.18",
+      "amount": 1837902.0,
+      "prev_amount": 0.0,
+      "amount_change": 1837902.0,
+      "stock_count": 4,
+      "avg_change": 0.12,
+      "rise": 1,
+      "fall": 2
+    },
+    {
+      "name": "-2.05",
+      "amount": 1828571.0,
+      "prev_amount": 0.0,
+      "amount_change": 1828571.0,
+      "stock_count": 1,
+      "avg_change": -1.63,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.77",
+      "amount": 1781092.0,
+      "prev_amount": 0.0,
+      "amount_change": 1781092.0,
+      "stock_count": 1,
+      "avg_change": 2.05,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.0",
+      "amount": 1770075.0,
+      "prev_amount": 0.0,
+      "amount_change": 1770075.0,
+      "stock_count": 2,
+      "avg_change": 2.5,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "6.21",
+      "amount": 1697958.0,
+      "prev_amount": 0.0,
+      "amount_change": 1697958.0,
+      "stock_count": 1,
+      "avg_change": 3.17,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.06",
+      "amount": 1697201.0,
+      "prev_amount": 0.0,
+      "amount_change": 1697201.0,
+      "stock_count": 1,
+      "avg_change": 2.15,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "6.41",
+      "amount": 1654005.0,
+      "prev_amount": 0.0,
+      "amount_change": 1654005.0,
+      "stock_count": 1,
+      "avg_change": 5.06,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.75",
+      "amount": 1642732.0,
+      "prev_amount": 0.0,
+      "amount_change": 1642732.0,
+      "stock_count": 1,
+      "avg_change": 3.1,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.19",
+      "amount": 1597644.0,
+      "prev_amount": 0.0,
+      "amount_change": 1597644.0,
+      "stock_count": 3,
+      "avg_change": 0.3,
+      "rise": 2,
+      "fall": 1
+    },
+    {
+      "name": "-9.09",
+      "amount": 1487958.0,
+      "prev_amount": 0.0,
+      "amount_change": 1487958.0,
+      "stock_count": 1,
+      "avg_change": -12.09,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.05",
+      "amount": 1452815.0,
+      "prev_amount": 0.0,
+      "amount_change": 1452815.0,
+      "stock_count": 1,
+      "avg_change": 2.86,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.44",
+      "amount": 1397093.0,
+      "prev_amount": 0.0,
+      "amount_change": 1397093.0,
+      "stock_count": 2,
+      "avg_change": 0.12,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "-0.03",
+      "amount": 1332251.0,
+      "prev_amount": 0.0,
+      "amount_change": 1332251.0,
+      "stock_count": 1,
+      "avg_change": -0.02,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "1.17",
+      "amount": 1322884.0,
+      "prev_amount": 0.0,
+      "amount_change": 1322884.0,
+      "stock_count": 1,
+      "avg_change": 0.18,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.26",
+      "amount": 1269894.0,
+      "prev_amount": 0.0,
+      "amount_change": 1269894.0,
+      "stock_count": 3,
+      "avg_change": 0.76,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "-2.44",
+      "amount": 1203845.0,
+      "prev_amount": 0.0,
+      "amount_change": 1203845.0,
+      "stock_count": 1,
+      "avg_change": -1.52,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "2.28",
+      "amount": 1200333.0,
+      "prev_amount": 0.0,
+      "amount_change": 1200333.0,
+      "stock_count": 2,
+      "avg_change": 1.17,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "5.02",
+      "amount": 1146822.0,
+      "prev_amount": 0.0,
+      "amount_change": 1146822.0,
+      "stock_count": 1,
+      "avg_change": 2.48,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.5",
+      "amount": 1143703.0,
+      "prev_amount": 0.0,
+      "amount_change": 1143703.0,
+      "stock_count": 1,
+      "avg_change": -0.14,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "2.44",
+      "amount": 1042056.0,
+      "prev_amount": 0.0,
+      "amount_change": 1042056.0,
+      "stock_count": 1,
+      "avg_change": 2.16,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.62",
+      "amount": 1005375.0,
+      "prev_amount": 0.0,
+      "amount_change": 1005375.0,
+      "stock_count": 1,
+      "avg_change": 0.96,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.34",
+      "amount": 982542.0,
+      "prev_amount": 0.0,
+      "amount_change": 982542.0,
+      "stock_count": 2,
+      "avg_change": 1.93,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.9",
+      "amount": 978960.0,
+      "prev_amount": 0.0,
+      "amount_change": 978960.0,
+      "stock_count": 1,
+      "avg_change": 0.9,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-3.85",
+      "amount": 971846.0,
+      "prev_amount": 0.0,
+      "amount_change": 971846.0,
+      "stock_count": 1,
+      "avg_change": -6.33,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.97",
+      "amount": 955970.0,
+      "prev_amount": 0.0,
+      "amount_change": 955970.0,
+      "stock_count": 1,
+      "avg_change": 1.55,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.79",
+      "amount": 948395.0,
+      "prev_amount": 0.0,
+      "amount_change": 948395.0,
+      "stock_count": 1,
+      "avg_change": 0.2,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.14",
+      "amount": 916436.0,
+      "prev_amount": 0.0,
+      "amount_change": 916436.0,
+      "stock_count": 1,
+      "avg_change": -1.33,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-0.14",
+      "amount": 913880.0,
+      "prev_amount": 0.0,
+      "amount_change": 913880.0,
+      "stock_count": 1,
+      "avg_change": -0.05,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "10.42",
+      "amount": 842389.0,
+      "prev_amount": 0.0,
+      "amount_change": 842389.0,
+      "stock_count": 1,
+      "avg_change": 8.45,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.13",
+      "amount": 745908.0,
+      "prev_amount": 0.0,
+      "amount_change": 745908.0,
+      "stock_count": 1,
+      "avg_change": 0.01,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.09",
+      "amount": 711420.0,
+      "prev_amount": 0.0,
+      "amount_change": 711420.0,
+      "stock_count": 1,
+      "avg_change": 0.24,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "6.37",
+      "amount": 710411.0,
+      "prev_amount": 0.0,
+      "amount_change": 710411.0,
+      "stock_count": 1,
+      "avg_change": 2.19,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.72",
+      "amount": 666200.0,
+      "prev_amount": 0.0,
+      "amount_change": 666200.0,
+      "stock_count": 1,
+      "avg_change": 1.86,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.69",
+      "amount": 640212.0,
+      "prev_amount": 0.0,
+      "amount_change": 640212.0,
+      "stock_count": 1,
+      "avg_change": 1.37,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.64",
+      "amount": 635893.0,
+      "prev_amount": 0.0,
+      "amount_change": 635893.0,
+      "stock_count": 1,
+      "avg_change": 3.05,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-7.42",
+      "amount": 596181.0,
+      "prev_amount": 0.0,
+      "amount_change": 596181.0,
+      "stock_count": 1,
+      "avg_change": -3.85,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-1.75",
+      "amount": 596160.0,
+      "prev_amount": 0.0,
+      "amount_change": 596160.0,
+      "stock_count": 1,
+      "avg_change": -1.59,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-0.77",
+      "amount": 553221.0,
+      "prev_amount": 0.0,
+      "amount_change": 553221.0,
+      "stock_count": 1,
+      "avg_change": 0.16,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.5",
+      "amount": 539334.0,
+      "prev_amount": 0.0,
+      "amount_change": 539334.0,
+      "stock_count": 1,
+      "avg_change": 0.18,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.69",
+      "amount": 530627.0,
+      "prev_amount": 0.0,
+      "amount_change": 530627.0,
+      "stock_count": 1,
+      "avg_change": -0.06,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "1.43",
+      "amount": 530134.0,
+      "prev_amount": 0.0,
+      "amount_change": 530134.0,
+      "stock_count": 2,
+      "avg_change": 1.06,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.59",
+      "amount": 529612.0,
+      "prev_amount": 0.0,
+      "amount_change": 529612.0,
+      "stock_count": 2,
+      "avg_change": 0.01,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "4.4",
+      "amount": 513960.0,
+      "prev_amount": 0.0,
+      "amount_change": 513960.0,
+      "stock_count": 1,
+      "avg_change": 1.36,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.78",
+      "amount": 480017.0,
+      "prev_amount": 0.0,
+      "amount_change": 480017.0,
+      "stock_count": 1,
+      "avg_change": -1.22,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-1.58",
+      "amount": 471270.0,
+      "prev_amount": 0.0,
+      "amount_change": 471270.0,
+      "stock_count": 1,
+      "avg_change": 2.84,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.25",
+      "amount": 451668.0,
+      "prev_amount": 0.0,
+      "amount_change": 451668.0,
+      "stock_count": 1,
+      "avg_change": -0.09,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.6",
+      "amount": 440951.0,
+      "prev_amount": 0.0,
+      "amount_change": 440951.0,
+      "stock_count": 1,
+      "avg_change": 0.8,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.32",
+      "amount": 429608.0,
+      "prev_amount": 0.0,
+      "amount_change": 429608.0,
+      "stock_count": 1,
+      "avg_change": 1.48,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.05",
+      "amount": 413721.0,
+      "prev_amount": 0.0,
+      "amount_change": 413721.0,
+      "stock_count": 1,
+      "avg_change": 0.86,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.09",
+      "amount": 390064.0,
+      "prev_amount": 0.0,
+      "amount_change": 390064.0,
+      "stock_count": 1,
+      "avg_change": 0.74,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.52",
+      "amount": 381570.0,
+      "prev_amount": 0.0,
+      "amount_change": 381570.0,
+      "stock_count": 1,
+      "avg_change": 0.11,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "7.01",
+      "amount": 337429.0,
+      "prev_amount": 0.0,
+      "amount_change": 337429.0,
+      "stock_count": 1,
+      "avg_change": 1.76,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.57",
+      "amount": 332779.0,
+      "prev_amount": 0.0,
+      "amount_change": 332779.0,
+      "stock_count": 1,
+      "avg_change": 2.83,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-2.15",
+      "amount": 329381.0,
+      "prev_amount": 0.0,
+      "amount_change": 329381.0,
+      "stock_count": 2,
+      "avg_change": 0.6,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "5.35",
+      "amount": 328600.0,
+      "prev_amount": 0.0,
+      "amount_change": 328600.0,
+      "stock_count": 1,
+      "avg_change": 3.52,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.55",
+      "amount": 325288.0,
+      "prev_amount": 0.0,
+      "amount_change": 325288.0,
+      "stock_count": 1,
+      "avg_change": 1.42,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.29",
+      "amount": 324050.0,
+      "prev_amount": 0.0,
+      "amount_change": 324050.0,
+      "stock_count": 1,
+      "avg_change": 0.32,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.6",
+      "amount": 318718.0,
+      "prev_amount": 0.0,
+      "amount_change": 318718.0,
+      "stock_count": 1,
+      "avg_change": 3.33,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.76",
+      "amount": 313522.0,
+      "prev_amount": 0.0,
+      "amount_change": 313522.0,
+      "stock_count": 1,
+      "avg_change": 2.22,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.33",
+      "amount": 292914.0,
+      "prev_amount": 0.0,
+      "amount_change": 292914.0,
+      "stock_count": 2,
+      "avg_change": 3.31,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.77",
+      "amount": 283880.0,
+      "prev_amount": 0.0,
+      "amount_change": 283880.0,
+      "stock_count": 1,
+      "avg_change": 0.19,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.82",
+      "amount": 272913.0,
+      "prev_amount": 0.0,
+      "amount_change": 272913.0,
+      "stock_count": 1,
+      "avg_change": 0.02,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.25",
+      "amount": 257700.0,
+      "prev_amount": 0.0,
+      "amount_change": 257700.0,
+      "stock_count": 2,
+      "avg_change": 1.19,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "2.03",
+      "amount": 237785.0,
+      "prev_amount": 0.0,
+      "amount_change": 237785.0,
+      "stock_count": 1,
+      "avg_change": 3.34,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.21",
+      "amount": 200830.0,
+      "prev_amount": 0.0,
+      "amount_change": 200830.0,
+      "stock_count": 1,
+      "avg_change": 2.28,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.37",
+      "amount": 195891.0,
+      "prev_amount": 0.0,
+      "amount_change": 195891.0,
+      "stock_count": 2,
+      "avg_change": 1.77,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "3.25",
+      "amount": 184930.0,
+      "prev_amount": 0.0,
+      "amount_change": 184930.0,
+      "stock_count": 1,
+      "avg_change": 3.86,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.16",
+      "amount": 178921.0,
+      "prev_amount": 0.0,
+      "amount_change": 178921.0,
+      "stock_count": 1,
+      "avg_change": 2.24,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.04",
+      "amount": 178656.0,
+      "prev_amount": 0.0,
+      "amount_change": 178656.0,
+      "stock_count": 3,
+      "avg_change": 2.75,
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "2.12",
+      "amount": 178156.0,
+      "prev_amount": 0.0,
+      "amount_change": 178156.0,
+      "stock_count": 2,
+      "avg_change": 2.09,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.1",
+      "amount": 174940.0,
+      "prev_amount": 0.0,
+      "amount_change": 174940.0,
+      "stock_count": 3,
+      "avg_change": 0.17,
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "1.15",
+      "amount": 171950.0,
+      "prev_amount": 0.0,
+      "amount_change": 171950.0,
+      "stock_count": 1,
+      "avg_change": 0.61,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.66",
+      "amount": 171832.0,
+      "prev_amount": 0.0,
+      "amount_change": 171832.0,
+      "stock_count": 1,
+      "avg_change": 2.26,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.72",
+      "amount": 166030.0,
+      "prev_amount": 0.0,
+      "amount_change": 166030.0,
+      "stock_count": 2,
+      "avg_change": 2.46,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "-0.86",
+      "amount": 165138.0,
+      "prev_amount": 0.0,
+      "amount_change": 165138.0,
+      "stock_count": 1,
+      "avg_change": 0.22,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.01",
+      "amount": 160384.0,
+      "prev_amount": 0.0,
+      "amount_change": 160384.0,
+      "stock_count": 4,
+      "avg_change": 0.01,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "-2.19",
+      "amount": 158930.0,
+      "prev_amount": 0.0,
+      "amount_change": 158930.0,
+      "stock_count": 1,
+      "avg_change": 1.65,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.07",
+      "amount": 158753.0,
+      "prev_amount": 0.0,
+      "amount_change": 158753.0,
+      "stock_count": 2,
+      "avg_change": 2.06,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "3.1",
+      "amount": 155184.0,
+      "prev_amount": 0.0,
+      "amount_change": 155184.0,
+      "stock_count": 2,
+      "avg_change": 1.27,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "2.91",
+      "amount": 149580.0,
+      "prev_amount": 0.0,
+      "amount_change": 149580.0,
+      "stock_count": 1,
+      "avg_change": 3.88,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.06",
+      "amount": 137920.0,
+      "prev_amount": 0.0,
+      "amount_change": 137920.0,
+      "stock_count": 2,
+      "avg_change": -0.34,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "1.99",
+      "amount": 135511.0,
+      "prev_amount": 0.0,
+      "amount_change": 135511.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "-35.0",
+      "amount": 133853.0,
+      "prev_amount": 0.0,
+      "amount_change": 133853.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "2.48",
+      "amount": 133730.0,
+      "prev_amount": 0.0,
+      "amount_change": 133730.0,
+      "stock_count": 2,
+      "avg_change": 0.43,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "2.8",
+      "amount": 127402.0,
+      "prev_amount": 0.0,
+      "amount_change": 127402.0,
+      "stock_count": 1,
+      "avg_change": 1.74,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.32",
+      "amount": 126935.0,
+      "prev_amount": 0.0,
+      "amount_change": 126935.0,
+      "stock_count": 2,
+      "avg_change": 1.78,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "1.72",
+      "amount": 120015.0,
+      "prev_amount": 0.0,
+      "amount_change": 120015.0,
+      "stock_count": 2,
+      "avg_change": 0.83,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.18",
+      "amount": 116640.0,
+      "prev_amount": 0.0,
+      "amount_change": 116640.0,
+      "stock_count": 1,
+      "avg_change": 1.36,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.76",
+      "amount": 108920.0,
+      "prev_amount": 0.0,
+      "amount_change": 108920.0,
+      "stock_count": 1,
+      "avg_change": -1.48,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "2.01",
+      "amount": 102208.0,
+      "prev_amount": 0.0,
+      "amount_change": 102208.0,
+      "stock_count": 1,
+      "avg_change": 2.01,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.46",
+      "amount": 95882.0,
+      "prev_amount": 0.0,
+      "amount_change": 95882.0,
+      "stock_count": 1,
+      "avg_change": 0.25,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.18",
+      "amount": 92477.0,
+      "prev_amount": 0.0,
+      "amount_change": 92477.0,
+      "stock_count": 1,
+      "avg_change": 1.66,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.53",
+      "amount": 90460.0,
+      "prev_amount": 0.0,
+      "amount_change": 90460.0,
+      "stock_count": 1,
+      "avg_change": 1.56,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.02",
+      "amount": 88314.0,
+      "prev_amount": 0.0,
+      "amount_change": 88314.0,
+      "stock_count": 1,
+      "avg_change": 0.01,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "6.42",
+      "amount": 87448.0,
+      "prev_amount": 0.0,
+      "amount_change": 87448.0,
+      "stock_count": 1,
+      "avg_change": 2.87,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.49",
+      "amount": 82606.0,
+      "prev_amount": 0.0,
+      "amount_change": 82606.0,
+      "stock_count": 1,
+      "avg_change": 0.38,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.25",
+      "amount": 80940.0,
+      "prev_amount": 0.0,
+      "amount_change": 80940.0,
+      "stock_count": 1,
+      "avg_change": 1.19,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.03",
+      "amount": 80470.0,
+      "prev_amount": 0.0,
+      "amount_change": 80470.0,
+      "stock_count": 1,
+      "avg_change": 1.49,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.92",
+      "amount": 78235.0,
+      "prev_amount": 0.0,
+      "amount_change": 78235.0,
+      "stock_count": 2,
+      "avg_change": 0.7,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "1.38",
+      "amount": 72758.0,
+      "prev_amount": 0.0,
+      "amount_change": 72758.0,
+      "stock_count": 1,
+      "avg_change": 0.46,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.45",
+      "amount": 65438.0,
+      "prev_amount": 0.0,
+      "amount_change": 65438.0,
+      "stock_count": 1,
+      "avg_change": 2.45,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.12",
+      "amount": 58120.0,
+      "prev_amount": 0.0,
+      "amount_change": 58120.0,
+      "stock_count": 1,
+      "avg_change": 0.28,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.11",
+      "amount": 52607.0,
+      "prev_amount": 0.0,
+      "amount_change": 52607.0,
+      "stock_count": 1,
+      "avg_change": 1.13,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "8.56",
+      "amount": 51505.0,
+      "prev_amount": 0.0,
+      "amount_change": 51505.0,
+      "stock_count": 1,
+      "avg_change": 4.73,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.59",
+      "amount": 48994.0,
+      "prev_amount": 0.0,
+      "amount_change": 48994.0,
+      "stock_count": 1,
+      "avg_change": -0.21,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "1.2",
+      "amount": 46178.0,
+      "prev_amount": 0.0,
+      "amount_change": 46178.0,
+      "stock_count": 1,
+      "avg_change": 0.33,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.48",
+      "amount": 45500.0,
+      "prev_amount": 0.0,
+      "amount_change": 45500.0,
+      "stock_count": 1,
+      "avg_change": 2.67,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.49",
+      "amount": 45157.0,
+      "prev_amount": 0.0,
+      "amount_change": 45157.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "5.89",
+      "amount": 42875.0,
+      "prev_amount": 0.0,
+      "amount_change": 42875.0,
+      "stock_count": 1,
+      "avg_change": 1.85,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.07",
+      "amount": 41839.0,
+      "prev_amount": 0.0,
+      "amount_change": 41839.0,
+      "stock_count": 1,
+      "avg_change": 1.41,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.04",
+      "amount": 40606.0,
+      "prev_amount": 0.0,
+      "amount_change": 40606.0,
+      "stock_count": 1,
+      "avg_change": -0.04,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.4",
+      "amount": 38038.0,
+      "prev_amount": 0.0,
+      "amount_change": 38038.0,
+      "stock_count": 1,
+      "avg_change": 0.81,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.24",
+      "amount": 36941.0,
+      "prev_amount": 0.0,
+      "amount_change": 36941.0,
+      "stock_count": 2,
+      "avg_change": 1.38,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "-0.11",
+      "amount": 35733.0,
+      "prev_amount": 0.0,
+      "amount_change": 35733.0,
+      "stock_count": 1,
+      "avg_change": -0.12,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "2.86",
+      "amount": 30390.0,
+      "prev_amount": 0.0,
+      "amount_change": 30390.0,
+      "stock_count": 1,
+      "avg_change": 2.26,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.83",
+      "amount": 29244.0,
+      "prev_amount": 0.0,
+      "amount_change": 29244.0,
+      "stock_count": 1,
+      "avg_change": 0.08,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.65",
+      "amount": 28324.0,
+      "prev_amount": 0.0,
+      "amount_change": 28324.0,
+      "stock_count": 1,
+      "avg_change": 2.08,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.02",
+      "amount": 28245.0,
+      "prev_amount": 0.0,
+      "amount_change": 28245.0,
+      "stock_count": 3,
       "avg_change": 0.03,
-      "rise": 988,
-      "fall": 1050
+      "rise": 3,
+      "fall": 0
+    },
+    {
+      "name": "1.9",
+      "amount": 28200.0,
+      "prev_amount": 0.0,
+      "amount_change": 28200.0,
+      "stock_count": 1,
+      "avg_change": 2.92,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.05",
+      "amount": 27854.0,
+      "prev_amount": 0.0,
+      "amount_change": 27854.0,
+      "stock_count": 1,
+      "avg_change": 2.31,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.35",
+      "amount": 26858.0,
+      "prev_amount": 0.0,
+      "amount_change": 26858.0,
+      "stock_count": 1,
+      "avg_change": 0.99,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.64",
+      "amount": 26748.0,
+      "prev_amount": 0.0,
+      "amount_change": 26748.0,
+      "stock_count": 2,
+      "avg_change": 1.27,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "0.64",
+      "amount": 26616.0,
+      "prev_amount": 0.0,
+      "amount_change": 26616.0,
+      "stock_count": 1,
+      "avg_change": 0.54,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.21",
+      "amount": 21885.0,
+      "prev_amount": 0.0,
+      "amount_change": 21885.0,
+      "stock_count": 1,
+      "avg_change": -0.2,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "1.34",
+      "amount": 21627.0,
+      "prev_amount": 0.0,
+      "amount_change": 21627.0,
+      "stock_count": 1,
+      "avg_change": 0.36,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.75",
+      "amount": 20005.0,
+      "prev_amount": 0.0,
+      "amount_change": 20005.0,
+      "stock_count": 1,
+      "avg_change": 1.75,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.27",
+      "amount": 18041.0,
+      "prev_amount": 0.0,
+      "amount_change": 18041.0,
+      "stock_count": 1,
+      "avg_change": -1.18,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "8.83",
+      "amount": 16973.0,
+      "prev_amount": 0.0,
+      "amount_change": 16973.0,
+      "stock_count": 1,
+      "avg_change": 8.83,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.84",
+      "amount": 14805.0,
+      "prev_amount": 0.0,
+      "amount_change": 14805.0,
+      "stock_count": 1,
+      "avg_change": -1.53,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "3.46",
+      "amount": 14375.0,
+      "prev_amount": 0.0,
+      "amount_change": 14375.0,
+      "stock_count": 1,
+      "avg_change": 1.47,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.84",
+      "amount": 10181.0,
+      "prev_amount": 0.0,
+      "amount_change": 10181.0,
+      "stock_count": 2,
+      "avg_change": -0.06,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-1.44",
+      "amount": 8196.0,
+      "prev_amount": 0.0,
+      "amount_change": 8196.0,
+      "stock_count": 1,
+      "avg_change": -1.3,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "6.54",
+      "amount": 7650.0,
+      "prev_amount": 0.0,
+      "amount_change": 7650.0,
+      "stock_count": 1,
+      "avg_change": 2.74,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.05",
+      "amount": 7573.0,
+      "prev_amount": 0.0,
+      "amount_change": 7573.0,
+      "stock_count": 1,
+      "avg_change": 0.48,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.19",
+      "amount": 6014.0,
+      "prev_amount": 0.0,
+      "amount_change": 6014.0,
+      "stock_count": 1,
+      "avg_change": -1.05,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "1.85",
+      "amount": 3964.0,
+      "prev_amount": 0.0,
+      "amount_change": 3964.0,
+      "stock_count": 1,
+      "avg_change": 1.64,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.57",
+      "amount": 3958.0,
+      "prev_amount": 0.0,
+      "amount_change": 3958.0,
+      "stock_count": 1,
+      "avg_change": 1.87,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.16",
+      "amount": 3676.0,
+      "prev_amount": 0.0,
+      "amount_change": 3676.0,
+      "stock_count": 1,
+      "avg_change": 0.49,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.19",
+      "amount": 2732.0,
+      "prev_amount": 0.0,
+      "amount_change": 2732.0,
+      "stock_count": 2,
+      "avg_change": 1.02,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "1.68",
+      "amount": 2588.0,
+      "prev_amount": 0.0,
+      "amount_change": 2588.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "2.02",
+      "amount": 2440.0,
+      "prev_amount": 0.0,
+      "amount_change": 2440.0,
+      "stock_count": 2,
+      "avg_change": 0.95,
+      "rise": 1,
+      "fall": 1
+    },
+    {
+      "name": "8.32",
+      "amount": 2029.0,
+      "prev_amount": 0.0,
+      "amount_change": 2029.0,
+      "stock_count": 1,
+      "avg_change": 4.2,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.05",
+      "amount": 2011.0,
+      "prev_amount": 0.0,
+      "amount_change": 2011.0,
+      "stock_count": 1,
+      "avg_change": 0.05,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.87",
+      "amount": 955.0,
+      "prev_amount": 0.0,
+      "amount_change": 955.0,
+      "stock_count": 2,
+      "avg_change": 2.1,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "-0.63",
+      "amount": 710.0,
+      "prev_amount": 0.0,
+      "amount_change": 710.0,
+      "stock_count": 1,
+      "avg_change": 0.85,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "6.06",
+      "amount": 600.0,
+      "prev_amount": 0.0,
+      "amount_change": 600.0,
+      "stock_count": 1,
+      "avg_change": 1.48,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.07",
+      "amount": 370.0,
+      "prev_amount": 0.0,
+      "amount_change": 370.0,
+      "stock_count": 2,
+      "avg_change": 0.07,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "2.17",
+      "amount": 318.0,
+      "prev_amount": 0.0,
+      "amount_change": 318.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "其他(未分类)",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1399,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "4.28",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 3.13,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.88",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -0.43,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "4.74",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 2.82,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.31",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 4,
+      "avg_change": 0.25,
+      "rise": 4,
+      "fall": 0
+    },
+    {
+      "name": "0.03",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.03,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.42",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.36,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.27",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.35,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.24",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.18,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.36",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.47,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.49",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 2.41,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.37",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "1.62",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.47,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.05",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.21,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.08",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 3.08,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.62",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.09,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.29",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -0.19,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-0.74",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -1.39,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "1.77",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 2,
+      "avg_change": 0.81,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.28",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.28,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.63",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.84,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.96",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.99,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.48",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -0.06,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "5.86",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.34,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.05",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -0.17,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-0.48",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "3.4",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.38,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "8.81",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 4.5,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.73",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 2,
+      "avg_change": 2.15,
+      "rise": 2,
+      "fall": 0
+    },
+    {
+      "name": "3.29",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 2.88,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.42",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.86,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.81",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 4.28,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "8.28",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 11.51,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "4.56",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 3.35,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.79",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.24,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.19",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "1.76",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.32,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "5.09",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 3.12,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.43",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.57,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.98",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.59,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-7.14",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -4.23,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-8.98",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -11.66,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-3.58",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -5.87,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "-2.58",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "1.63",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.47,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "6.34",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 2.51,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.53",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "5.45",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 2.19,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.21",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.11,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.99",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 2.79,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.97",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.72,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.72",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.51,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.32",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 3.27,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.04",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.04,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.04",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "-0.43",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -0.87,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "14.78",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "14.42",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "-0.16",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "7.37",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 3.77,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.26",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.26,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "14.88",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "1.74",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.63,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.53",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.53,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "0.22",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.22,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-0.89",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -0.8,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.32",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.23,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-1.85",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": -0.3,
+      "rise": 0,
+      "fall": 1
+    },
+    {
+      "name": "0.52",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.98,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "1.49",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.68,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "14.54",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "2.24",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 1.67,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "3.91",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 2.01,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "2.33",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.66,
+      "rise": 1,
+      "fall": 0
+    },
+    {
+      "name": "-41.18",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "0.73",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "10.43",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
+    },
+    {
+      "name": "447.62",
+      "amount": 0.0,
+      "prev_amount": 0.0,
+      "amount_change": 0.0,
+      "stock_count": 1,
+      "avg_change": 0.0,
+      "rise": 0,
+      "fall": 0
     }
   ]
 }

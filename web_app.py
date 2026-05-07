@@ -84,17 +84,24 @@ def get_stock_name(ts_code):
     return name_map.get(ts_code, "")
 
 
-@app.route("/")
-def index():
-    """主页面"""
-    # 加载可用的历史数据日期列表
+_PAGE_TABS = frozenset({"board", "market", "watchlist", "usSector", "hkSector"})
+
+
+def _normalize_initial_tab(tab: object) -> str:
+    if tab is None:
+        return "board"
+    t = str(tab).strip()
+    return t if t in _PAGE_TABS else "board"
+
+
+def _render_index(initial_tab: str = "board"):
+    """主页面：initial_tab 为前端首屏 Tab（与 URL 路由一致）"""
     available_dates = []
     if SUMMARY_DIR.exists():
         for f in sorted(SUMMARY_DIR.glob("board_auction_*.csv"), reverse=True):
             date_str = f.stem.replace("board_auction_", "")
             available_dates.append(date_str)
 
-    # 查找今天的汇总数据
     today_str = datetime.now().strftime("%Y%m%d")
     today_summary = None
     today_csv = SUMMARY_DIR / f"board_auction_{today_str}.csv"
@@ -107,7 +114,45 @@ def index():
         today_summary=today_summary,
         today_date=today_str,
         focus_boards=FOCUS_BOARDS,
+        initial_tab=_normalize_initial_tab(initial_tab),
     )
+
+
+@app.route("/")
+def index():
+    return _render_index("board")
+
+
+@app.route("/index")
+@app.route("/board")
+def index_board_aliases():
+    """首页：与根路径相同"""
+    return _render_index("board")
+
+
+@app.route("/market")
+@app.route("/dapan")
+def index_market():
+    """大盘数据对比"""
+    return _render_index("market")
+
+
+@app.route("/watchlist")
+def index_watchlist():
+    """我的关注"""
+    return _render_index("watchlist")
+
+
+@app.route("/us-sector")
+def index_us_sector():
+    """美股板块"""
+    return _render_index("usSector")
+
+
+@app.route("/hk-sector")
+def index_hk_sector():
+    """港股竞价"""
+    return _render_index("hkSector")
 
 
 def get_previous_trade_date(date_str):
