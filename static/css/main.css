@@ -846,6 +846,16 @@ body.mobile-nav-open .mobile-nav-drawer {
   display: none;
 }
 
+.board-trend-chart-box {
+  height: 300px;
+  min-height: 240px;
+}
+.board-trend-btn {
+  padding: 5px 10px !important;
+  font-size: 11px !important;
+  white-space: nowrap;
+}
+
 @media (min-width: 901px) {
   .mobile-nav-menu-btn,
   .mobile-nav-backdrop,
@@ -1213,6 +1223,32 @@ body.mobile-nav-open .mobile-nav-drawer {
     color: var(--red);
     border-color: rgba(248, 81, 73, 0.35);
     background: rgba(248, 81, 73, 0.08);
+  }
+
+  /* 板块7日趋势弹窗：底部贴合，便于单手关闭 */
+  .board-trend-modal {
+    align-items: flex-end !important;
+    padding-left: max(0px, env(safe-area-inset-left)) !important;
+    padding-right: max(0px, env(safe-area-inset-right)) !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+  .board-trend-dialog {
+    max-width: none !important;
+    width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 88vh !important;
+    max-height: 88dvh !important;
+  }
+  .board-trend-chart-box {
+    height: min(52vh, 320px);
+    min-height: 220px;
+  }
+  .board-trend-btn {
+    min-height: 40px !important;
+    width: 100%;
+    max-width: 140px;
+    margin: 0 auto;
+    display: block;
   }
 }
 

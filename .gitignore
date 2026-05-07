@@ -7,6 +7,7 @@ cloudflared.log
 run_output.log
 data/*.csv
 data/*.json.bak
+data/board_trend_cache/
 .venv/
 venv/
 .idea/

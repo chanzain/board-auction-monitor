@@ -422,6 +422,29 @@
       </div>
     </div>
 
+    <!-- 板块近7日竞价成交额趋势 -->
+    <div id="boardTrendModal" class="board-trend-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:2080;justify-content:center;align-items:center;padding:16px;">
+      <div class="board-trend-dialog" style="background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:640px;max-height:90vh;max-height:90dvh;display:flex;flex-direction:column;box-shadow:0 20px 48px rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;gap:12px;">
+          <div style="min-width:0;">
+            <h3 id="boardTrendTitle" style="font-size:15px;font-weight:600;margin:0;">近7交易日竞价成交额</h3>
+            <p id="boardTrendSubtitle" style="font-size:12px;color:var(--text-secondary);margin:6px 0 0 0;line-height:1.45;"></p>
+          </div>
+          <button type="button" onclick="closeBoardTrendModal()" style="background:none;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:6px;flex-shrink:0;">×</button>
+        </div>
+        <div style="padding:12px 20px 8px;flex-shrink:0;">
+          <p id="boardTrendHint" style="font-size:11px;color:var(--text-secondary);margin:0;line-height:1.45;">折线为该日板块竞价成交额（亿元）；悬停数据点可查看当日成交额及相对前一交易日的增减。</p>
+        </div>
+        <div id="boardTrendStatus" style="padding:0 20px;min-height:22px;font-size:13px;color:var(--text-secondary);"></div>
+        <div class="board-trend-chart-box" style="flex:1;min-height:260px;padding:8px 16px 16px;position:relative;">
+          <canvas id="boardTrendCanvas"></canvas>
+        </div>
+        <div style="padding:12px 20px 16px;border-top:1px solid var(--border);flex-shrink:0;">
+          <button type="button" class="btn btn-primary" style="width:100%;padding:10px;border-radius:8px;font-size:14px;min-height:44px;" onclick="closeBoardTrendModal()">关闭</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 港股板块成分股弹窗（与 A 股列表字段对齐简化版，无 A 股概念映射） -->
     <div id="hkStockModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:2005;justify-content:center;align-items:center;">
       <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;width:96%;max-width:1000px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 48px rgba(0,0,0,0.5);">
@@ -893,6 +916,7 @@
         '<th>板块名称</th>' +
         '<th>竞价成交额</th>' +
         '<th>较前日变化</th>' +
+        '<th style="white-space:nowrap;min-width:100px">7日竞价趋势</th>' +
         '<th>个股均额</th>' +
         '<th>统计股数</th>' +
         '<th>平均涨幅</th>' +
@@ -913,11 +937,13 @@
 
         var rowHighlight = currentBoardSearch && item.name.indexOf(currentBoardSearch) !== -1 ? ' highlight-row' : '';
 
+        var nameEsc = item.name.replace(/'/g, "\\'");
         html += '<tr class="' + (isFocus ? 'focus-row' : '') + rowHighlight + '">' +
           '<td><span class="rank ' + (item.rank <= 3 ? 'top' : '') + '">' + item.rank + '</span></td>' +
           '<td><span class="board-name">' + item.name + '</span>' + (isFocus ? '<span class="board-tag">关注</span>' : '') + '</td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
+          '<td><button type="button" class="btn btn-outline board-trend-btn" onclick="openBoardTrendModal(\'' + nameEsc + '\')">查看趋势</button></td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +
           '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\',\'' + boardCategory + '\')">' + item.stock_count + '只 📋</td>' +
           '<td><span class="change-badge ' + changeCls + '">' + sign + changePct.toFixed(2) + '%</span></td>' +
@@ -1099,6 +1125,7 @@
     /* ===== 大盘数据对比功能 ===== */
     /* ============================================ */
     var marketChart = null;
+    var boardTrendChart = null;
     var marketDataLoaded = false;
     var marketCurrentDays = 15;     // 当前显示的天数
     var marketHistoryDates = [];     // 所有可用的历史日期（从新到旧）
@@ -1504,6 +1531,143 @@
       return amount.toFixed(0) + '元';
     }
 
+    /* ===== 板块近7日竞价成交额趋势 ===== */
+    function closeBoardTrendModal() {
+      var el = document.getElementById('boardTrendModal');
+      if (el) el.style.display = 'none';
+      if (boardTrendChart) {
+        boardTrendChart.destroy();
+        boardTrendChart = null;
+      }
+    }
+
+    function renderBoardTrendChart(points) {
+      var canvas = document.getElementById('boardTrendCanvas');
+      if (!canvas || typeof Chart === 'undefined') return;
+      var ctx = canvas.getContext('2d');
+      if (boardTrendChart) {
+        boardTrendChart.destroy();
+        boardTrendChart = null;
+      }
+      var labels = points.map(function(p) { return p.date.slice(4, 6) + '-' + p.date.slice(6, 8); });
+      var valuesYi = points.map(function(p) {
+        return p.amount != null ? Number((p.amount / 1e8).toFixed(4)) : null;
+      });
+      boardTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '竞价成交额(亿)',
+            data: valuesYi,
+            borderColor: '#bc8cff',
+            backgroundColor: 'rgba(188, 140, 255, 0.12)',
+            fill: true,
+            tension: 0.35,
+            spanGaps: false,
+            pointBackgroundColor: '#bc8cff',
+            pointBorderColor: '#bc8cff',
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            borderWidth: 2.5,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#e6edf3', font: { size: 12 } }
+            },
+            tooltip: {
+              backgroundColor: '#161b22',
+              titleColor: '#e6edf3',
+              bodyColor: '#e6edf3',
+              borderColor: '#30363d',
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                title: function(items) {
+                  var idx = items[0].dataIndex;
+                  var d = points[idx].date;
+                  return d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8);
+                },
+                label: function(ctx) {
+                  var p = points[ctx.dataIndex];
+                  var lines = [
+                    '竞价成交额: ' + (p.amount_display || '--'),
+                    '较前一交易日: ' + (p.vs_prev_display || '--'),
+                  ];
+                  if (p.prev_trade_date) {
+                    var pd = p.prev_trade_date;
+                    lines.push('对比基准日: ' + pd.slice(0, 4) + '-' + pd.slice(4, 6) + '-' + pd.slice(6, 8));
+                  }
+                  return lines;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#8b949e', font: { size: 11 } },
+              grid: { color: 'rgba(48,54,61,0.4)' },
+            },
+            y: {
+              ticks: {
+                color: '#8b949e',
+                font: { size: 11 },
+                callback: function(v) { return v + '亿'; }
+              },
+              grid: { color: 'rgba(48,54,61,0.4)' },
+            }
+          }
+        }
+      });
+    }
+
+    async function openBoardTrendModal(boardName) {
+      if (!boardName) return;
+      if (!currentDate) {
+        showMessage('warning', '请先选择日期并加载板块数据');
+        return;
+      }
+      var modal = document.getElementById('boardTrendModal');
+      var statusEl = document.getElementById('boardTrendStatus');
+      document.getElementById('boardTrendTitle').textContent = boardName + ' · 近7交易日竞价成交额';
+      document.getElementById('boardTrendSubtitle').textContent =
+        '截止交易日 ' + formatDateISO(currentDate) + ' · 数据来自本地已保存的板块汇总（无汇总文件的日期将断档）';
+      if (statusEl) statusEl.textContent = '加载中…';
+      modal.style.display = 'flex';
+      if (boardTrendChart) {
+        boardTrendChart.destroy();
+        boardTrendChart = null;
+      }
+      try {
+        var url = '/api/board_auction_trend/' + currentDate + '/' + encodeURIComponent(boardName) +
+          '?category=' + encodeURIComponent(boardCategory);
+        var resp = await fetch(url);
+        var result = await resp.json();
+        if (!result.success) {
+          if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">' + escapeHtml(result.message || '加载失败') + '</span>';
+          return;
+        }
+        var sub = '截止交易日 ' + formatDateISO(currentDate) + ' · 数据来自本地已保存的板块汇总（无汇总文件的日期将断档）';
+        if (result.from_cache && result.cached_at) {
+          sub += ' · 已使用本地缓存（' + result.cached_at + ' 生成）';
+        }
+        document.getElementById('boardTrendSubtitle').textContent = sub;
+        if (statusEl) statusEl.textContent = '';
+        renderBoardTrendChart(result.points || []);
+      } catch (e) {
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">请求失败: ' + escapeHtml(e.message) + '</span>';
+      }
+    }
+
+    document.getElementById('boardTrendModal').addEventListener('click', function(e) {
+      if (e.target === this) closeBoardTrendModal();
+    });
+
     /* ===== 板块成分股弹窗 ===== */
     var currentStockData = null;  // 存储当前加载的股票数据
     var currentTypeFilter = 'all';
@@ -1827,6 +1991,11 @@
         var cdm = document.getElementById('conceptDetailModal');
         if (cdm && cdm.style.display === 'flex') {
           closeConceptDetailModal();
+          return;
+        }
+        var btm = document.getElementById('boardTrendModal');
+        if (btm && btm.style.display === 'flex') {
+          closeBoardTrendModal();
           return;
         }
         var hkm = document.getElementById('hkStockModal');

@@ -4,6 +4,7 @@ Flask Web 服务 - 板块竞价数据可视化面板
 
 import os
 import json
+import hashlib
 from pathlib import Path
 from datetime import datetime
 
@@ -34,6 +35,9 @@ DATA_DIR = Path(__file__).parent / "data"
 SUMMARY_DIR = DATA_DIR / "board_summary"
 AUCTION_DIR = DATA_DIR / "auction"
 WATCHLIST_FILE = DATA_DIR / "my_watchlist.json"
+# 板块「近7日竞价趋势」接口的本地 JSON 缓存（点击加载后写入，下次直接读文件）
+BOARD_TREND_CACHE_DIR = DATA_DIR / "board_trend_cache"
+BOARD_TREND_CACHE_VERSION = 1
 
 # ========== 股票名称缓存 ==========
 _stock_name_cache = None  # {ts_code: name}
@@ -751,6 +755,151 @@ def load_summary_csv(filepath) -> "pd.DataFrame | None":
         return df
     except Exception:
         return None
+
+
+def _board_row_amount_from_summary(date_str: str, board_name: str, category: str):
+    """从某日板块汇总 CSV 读取指定板块的竞价成交额(元)；无文件或无行返回 None"""
+    p = _summary_csv_path_for_category(date_str, category)
+    if not p:
+        return None
+    df = load_summary_csv(p)
+    if df is None or df.empty or "板块名称" not in df.columns or "成交额(元)" not in df.columns:
+        return None
+    m = df[df["板块名称"].astype(str) == str(board_name)]
+    if m.empty:
+        return None
+    return _safe_float(m.iloc[0]["成交额(元)"])
+
+
+def _format_signed_amount_diff(diff: float) -> str:
+    """日环比差额展示（与板块列表「较前日」风格一致）"""
+    import math
+    if diff is None or (isinstance(diff, float) and (math.isnan(diff) or math.isinf(diff))):
+        return "--"
+    if diff == 0:
+        return "0"
+    disp = format_amount(abs(diff))
+    if diff > 0:
+        return f"+{disp}"
+    return f"-{disp}"
+
+
+def _board_trend_cache_file_stem(anchor_date: str, board_name: str, category: str) -> str:
+    raw = f"{BOARD_TREND_CACHE_VERSION}|{anchor_date}|{category}|{board_name}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _board_trend_cache_path(anchor_date: str, board_name: str, category: str) -> Path:
+    return BOARD_TREND_CACHE_DIR / f"{_board_trend_cache_file_stem(anchor_date, board_name, category)}.json"
+
+
+def _try_load_board_trend_cache(anchor_date: str, board_name: str, category: str):
+    """命中缓存则返回 dict（含 points 等），否则 None"""
+    path = _board_trend_cache_path(anchor_date, board_name, category)
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if data.get("version") != BOARD_TREND_CACHE_VERSION:
+        return None
+    if (
+        data.get("anchor_date") != anchor_date
+        or data.get("board_name") != board_name
+        or data.get("board_category") != category
+    ):
+        return None
+    if not isinstance(data.get("points"), list):
+        return None
+    return data
+
+
+def _save_board_trend_cache(anchor_date: str, board_name: str, category: str, points: list) -> None:
+    BOARD_TREND_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    path = _board_trend_cache_path(anchor_date, board_name, category)
+    payload = {
+        "version": BOARD_TREND_CACHE_VERSION,
+        "anchor_date": anchor_date,
+        "board_name": board_name,
+        "board_category": category,
+        "points": points,
+        "cached_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+@app.route("/api/board_auction_trend/<date_str>/<path:board_name>")
+def api_board_auction_trend(date_str, board_name):
+    """某板块：以 date_str 为截止日，近 7 个交易日的竞价成交额序列（本地汇总 CSV）"""
+    try:
+        category = _normalize_board_category_arg(request.args.get("category"))
+        refresh = str(request.args.get("refresh", "")).strip().lower() in ("1", "true", "yes")
+
+        board_map = load_board_map_for_category(category)
+        if not board_map:
+            return jsonify({"success": False, "message": "板块映射为空"})
+        if board_name not in board_map:
+            return jsonify({"success": False, "message": f"当前分类下未找到板块: {board_name}"})
+
+        if not refresh:
+            cached = _try_load_board_trend_cache(date_str, board_name, category)
+            if cached is not None:
+                return jsonify({
+                    "success": True,
+                    "board_name": board_name,
+                    "anchor_date": date_str,
+                    "board_category": category,
+                    "points": cached["points"],
+                    "from_cache": True,
+                    "cached_at": cached.get("cached_at"),
+                })
+
+        days = []
+        d = date_str
+        for _ in range(7):
+            if not d:
+                break
+            days.append(d)
+            d = get_previous_trade_day(d)
+        days.reverse()
+
+        if not days:
+            return jsonify({"success": False, "message": "无法解析交易日历"})
+
+        points = []
+        for td in days:
+            amt = _board_row_amount_from_summary(td, board_name, category)
+            prev_td = get_previous_trade_day(td)
+            prev_amt = (
+                _board_row_amount_from_summary(prev_td, board_name, category)
+                if prev_td
+                else None
+            )
+            vs = None
+            if amt is not None and prev_amt is not None:
+                vs = amt - prev_amt
+            points.append({
+                "date": td,
+                "amount": amt,
+                "amount_display": format_amount(amt) if amt is not None else "--",
+                "prev_trade_date": prev_td,
+                "vs_prev": vs,
+                "vs_prev_display": _format_signed_amount_diff(vs) if vs is not None else "--",
+            })
+
+        _save_board_trend_cache(date_str, board_name, category, points)
+
+        return jsonify({
+            "success": True,
+            "board_name": board_name,
+            "anchor_date": date_str,
+            "board_category": category,
+            "points": points,
+            "from_cache": False,
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 
 @app.route("/api/market_overview")
