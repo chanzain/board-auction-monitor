@@ -38,6 +38,9 @@ WATCHLIST_FILE = DATA_DIR / "my_watchlist.json"
 # 板块「近7日竞价趋势」接口的本地 JSON 缓存（点击加载后写入，下次直接读文件）
 BOARD_TREND_CACHE_DIR = DATA_DIR / "board_trend_cache"
 BOARD_TREND_CACHE_VERSION = 1
+# 我的关注表格数据缓存（按日期 + 关注列表内容哈希）
+WATCHLIST_DATA_CACHE_DIR = DATA_DIR / "watchlist_data_cache"
+WATCHLIST_DATA_CACHE_VERSION = 1
 
 # ========== 股票名称缓存 ==========
 _stock_name_cache = None  # {ts_code: name}
@@ -1067,6 +1070,57 @@ def api_remove_watchlist():
     return jsonify({"success": True, "message": f"已移除「{board_name}」", "watchlist": new_wl})
 
 
+def _watchlist_stable_hash(watchlist: list) -> str:
+    """关注列表规范化后做哈希，列表变更则缓存键变化"""
+    norm = []
+    for x in watchlist:
+        if not isinstance(x, dict):
+            continue
+        nm = str(x.get("name", "")).strip()
+        if not nm:
+            continue
+        cat = _normalize_board_category_arg(x.get("category"))
+        norm.append([nm, cat])
+    norm.sort(key=lambda t: (t[0], t[1]))
+    raw = json.dumps(norm, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _watchlist_data_cache_path(date_str: str, wl_hash: str) -> Path:
+    return WATCHLIST_DATA_CACHE_DIR / f"{WATCHLIST_DATA_CACHE_VERSION}_{date_str}_{wl_hash}.json"
+
+
+def _try_load_watchlist_data_cache(date_str: str, wl_hash: str):
+    path = _watchlist_data_cache_path(date_str, wl_hash)
+    if not path.is_file():
+        return None
+    try:
+        blob = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if blob.get("version") != WATCHLIST_DATA_CACHE_VERSION:
+        return None
+    if blob.get("date") != date_str or blob.get("watchlist_hash") != wl_hash:
+        return None
+    payload = blob.get("payload")
+    if not isinstance(payload, dict):
+        return None
+    return blob
+
+
+def _save_watchlist_data_cache(date_str: str, wl_hash: str, payload: dict) -> None:
+    WATCHLIST_DATA_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    path = _watchlist_data_cache_path(date_str, wl_hash)
+    blob = {
+        "version": WATCHLIST_DATA_CACHE_VERSION,
+        "date": date_str,
+        "watchlist_hash": wl_hash,
+        "cached_at": datetime.now().isoformat(timespec="seconds"),
+        "payload": payload,
+    }
+    path.write_text(json.dumps(blob, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 @app.route("/api/watchlist/data")
 def api_watchlist_data():
     """获取关注板块在指定日期的竞价数据（按每条关注的分类取汇总）"""
@@ -1076,9 +1130,21 @@ def api_watchlist_data():
     if not date_str:
         return jsonify({"success": False, "message": "请指定日期"})
 
+    refresh = str(request.args.get("refresh", "")).strip().lower() in ("1", "true", "yes")
+
     watchlist = _load_watchlist()
     if not watchlist:
         return jsonify({"success": True, "data": [], "watchlist": []})
+
+    wl_hash = _watchlist_stable_hash(watchlist)
+
+    if not refresh:
+        cached = _try_load_watchlist_data_cache(date_str, wl_hash)
+        if cached is not None:
+            out = dict(cached["payload"])
+            out["from_cache"] = True
+            out["cached_at"] = cached.get("cached_at")
+            return jsonify(out)
 
     auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
     has_any = auction_csv.exists() or bool(_summary_csv_path_for_category(date_str, "concept")) or bool(_summary_csv_path_for_category(date_str, "industry"))
@@ -1117,13 +1183,18 @@ def api_watchlist_data():
 
     rows_out.sort(key=lambda x: x["amount"], reverse=True)
 
-    return jsonify({
+    payload = {
         "success": True,
         "date": date_str,
         "prev_date": prev_date,
         "watchlist": watchlist,
         "data": rows_out,
-    })
+    }
+    _save_watchlist_data_cache(date_str, wl_hash, payload)
+
+    out = dict(payload)
+    out["from_cache"] = False
+    return jsonify(out)
 
 
 # ========== 美股板块 ==========

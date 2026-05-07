@@ -431,6 +431,41 @@ tbody td {
   color: var(--purple);
   margin-left: 6px;
 }
+.board-tag--star {
+  background: rgba(240,185,11,0.15);
+  color: var(--gold);
+}
+button.board-follow-btn {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  margin-left: 6px;
+  border: none;
+  background: rgba(188,140,255,0.2);
+  color: var(--purple);
+  cursor: pointer;
+  font-family: inherit;
+  vertical-align: middle;
+  transition: opacity 0.15s, background 0.15s;
+}
+button.board-follow-btn:hover {
+  background: rgba(188,140,255,0.32);
+  opacity: 0.95;
+}
+button.board-follow-btn:active {
+  opacity: 0.85;
+}
+.board-follow-state {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.06);
+  vertical-align: middle;
+}
 .board-sub-tabs {
   display: flex;
   gap: 8px;

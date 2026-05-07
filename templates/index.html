@@ -487,6 +487,8 @@
     var boardMapsMeta = { concept: false, industry: false };
     var boardCategory = 'concept';
     var currentModalBoardCategory = 'concept';
+    var watchlistCurrentDate = '';  // 我的关注：当前查看的日期
+    var myWatchlist = [];           // 关注列表（板块列表「关注」按钮与关注页共用）
 
     /* ===== 前端路由（与 Flask 页面路径一致，用于 pushState / 刷新直达）===== */
     var TAB_PATHS = { board: '/', market: '/market', watchlist: '/watchlist', usSector: '/us-sector', hkSector: '/hk-sector' };
@@ -903,6 +905,47 @@
       }
     }
 
+    function isBoardInWatchlist(boardName, category) {
+      var cat = (category != null && String(category).trim() !== '') ? String(category).trim() : boardCategory;
+      if (!myWatchlist || !myWatchlist.length) return false;
+      return myWatchlist.some(function(e) {
+        return e && e.name === boardName && (e.category || 'concept') === cat;
+      });
+    }
+
+    function rerenderBoardWatchlistUi() {
+      if (!currentFullData) return;
+      if (currentBoardSearch) {
+        applySearchFilter();
+      } else {
+        renderFilteredData(currentFullData);
+      }
+    }
+
+    async function addBoardToWatchlistFromTable(boardName) {
+      if (!boardName) return;
+      try {
+        var resp = await fetch('/api/watchlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ board_name: boardName, category: boardCategory })
+        });
+        var result = await resp.json();
+        if (result.success) {
+          myWatchlist = result.watchlist || [];
+          showMessage('success', result.message);
+          rerenderBoardWatchlistUi();
+          if (watchlistCurrentDate) {
+            loadWatchlistData(watchlistCurrentDate);
+          }
+        } else {
+          showMessage('warning', result.message);
+        }
+      } catch (e) {
+        showMessage('error', '关注失败: ' + e.message);
+      }
+    }
+
     function renderFilteredData(data) {
       var maxAmount = maxBoardAmount(currentFullData);
 
@@ -938,9 +981,16 @@
         var rowHighlight = currentBoardSearch && item.name.indexOf(currentBoardSearch) !== -1 ? ' highlight-row' : '';
 
         var nameEsc = item.name.replace(/'/g, "\\'");
+        var inWl = isBoardInWatchlist(item.name, boardCategory);
+        var followCell = inWl
+          ? '<span class="board-follow-state" title="已在「我的关注」中">已关注</span>'
+          : '<button type="button" class="board-follow-btn" onclick="addBoardToWatchlistFromTable(\'' + nameEsc + '\')">关注</button>';
         html += '<tr class="' + (isFocus ? 'focus-row' : '') + rowHighlight + '">' +
           '<td><span class="rank ' + (item.rank <= 3 ? 'top' : '') + '">' + item.rank + '</span></td>' +
-          '<td><span class="board-name">' + item.name + '</span>' + (isFocus ? '<span class="board-tag">关注</span>' : '') + '</td>' +
+          '<td><span class="board-name">' + item.name + '</span>' +
+            (isFocus ? '<span class="board-tag board-tag--star" title="重点关注">⭐</span>' : '') +
+            followCell +
+          '</td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
           '<td><button type="button" class="btn btn-outline board-trend-btn" onclick="openBoardTrendModal(\'' + nameEsc + '\')">查看趋势</button></td>' +
@@ -1114,6 +1164,7 @@
       (async function() {
         await loadBoardCategoryMeta();
         await loadHistoryDates();
+        await loadWatchlist();
         switchTab(initialTab, { skipHistory: true });
         if (initialTab === 'board' && historyDates.length > 0 && !currentFullData) {
           loadHistory(historyDates[0]);
@@ -1626,17 +1677,25 @@
       });
     }
 
-    async function openBoardTrendModal(boardName) {
+    /**
+     * 近7日竞价趋势（与 /api/board_auction_trend + data/board_trend_cache 联动）
+     * @param boardName 板块名
+     * @param anchorDate 可选，截止交易日 YYYYMMDD；默认用 A 股板块页 currentDate
+     * @param category 可选 concept/industry；默认用板块页 boardCategory（关注列表须传每行 board_category）
+     */
+    async function openBoardTrendModal(boardName, anchorDate, category) {
       if (!boardName) return;
-      if (!currentDate) {
-        showMessage('warning', '请先选择日期并加载板块数据');
+      var dateStr = anchorDate || currentDate || '';
+      var cat = (category != null && String(category).trim() !== '') ? String(category).trim() : boardCategory;
+      if (!dateStr) {
+        showMessage('warning', '请先选择日期并加载数据');
         return;
       }
       var modal = document.getElementById('boardTrendModal');
       var statusEl = document.getElementById('boardTrendStatus');
       document.getElementById('boardTrendTitle').textContent = boardName + ' · 近7交易日竞价成交额';
       document.getElementById('boardTrendSubtitle').textContent =
-        '截止交易日 ' + formatDateISO(currentDate) + ' · 数据来自本地已保存的板块汇总（无汇总文件的日期将断档）';
+        '截止交易日 ' + formatDateISO(dateStr) + ' · 数据来自本地已保存的板块汇总（与板块竞价页共用缓存目录 board_trend_cache）';
       if (statusEl) statusEl.textContent = '加载中…';
       modal.style.display = 'flex';
       if (boardTrendChart) {
@@ -1644,15 +1703,15 @@
         boardTrendChart = null;
       }
       try {
-        var url = '/api/board_auction_trend/' + currentDate + '/' + encodeURIComponent(boardName) +
-          '?category=' + encodeURIComponent(boardCategory);
+        var url = '/api/board_auction_trend/' + dateStr + '/' + encodeURIComponent(boardName) +
+          '?category=' + encodeURIComponent(cat);
         var resp = await fetch(url);
         var result = await resp.json();
         if (!result.success) {
           if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">' + escapeHtml(result.message || '加载失败') + '</span>';
           return;
         }
-        var sub = '截止交易日 ' + formatDateISO(currentDate) + ' · 数据来自本地已保存的板块汇总（无汇总文件的日期将断档）';
+        var sub = '截止交易日 ' + formatDateISO(dateStr) + ' · 数据来自本地已保存的板块汇总（无汇总文件的日期将断档）';
         if (result.from_cache && result.cached_at) {
           sub += ' · 已使用本地缓存（' + result.cached_at + ' 生成）';
         }
@@ -2019,8 +2078,6 @@
     /* ============================================ */
     /* ===== 我的关注功能 ===== */
     /* ============================================ */
-    var watchlistCurrentDate = '';  // 当前查看的日期
-    var myWatchlist = [];           // 关注列表缓存
 
     /* ===== 关注列表管理 ===== */
     async function loadWatchlist() {
@@ -2058,6 +2115,7 @@
           updateWatchlistCount();
           input.value = '';
           showMessage('success', result.message);
+          rerenderBoardWatchlistUi();
           // 如果已有日期，刷新数据
           if (watchlistCurrentDate) {
             loadWatchlistData(watchlistCurrentDate);
@@ -2083,6 +2141,7 @@
           renderWatchlistTags();
           updateWatchlistCount();
           showMessage('success', result.message);
+          rerenderBoardWatchlistUi();
           // 刷新数据
           if (watchlistCurrentDate) {
             loadWatchlistData(watchlistCurrentDate);
@@ -2241,8 +2300,11 @@
       var prevDate = result.prev_date || '';
       var container = document.getElementById('watchlistTableContent');
 
-      document.getElementById('watchlistTableSubtitle').textContent =
-        '数据日期: ' + formatDateISO(dateStr) + (prevDate ? ' | 对比: ' + formatDateISO(prevDate) : '') + ' | 共 ' + data.length + ' 个关注板块';
+      var subWl = '数据日期: ' + formatDateISO(dateStr) + (prevDate ? ' | 对比: ' + formatDateISO(prevDate) : '') + ' | 共 ' + data.length + ' 个关注板块';
+      if (result.from_cache && result.cached_at) {
+        subWl += ' · 已使用本地缓存（' + result.cached_at + '）';
+      }
+      document.getElementById('watchlistTableSubtitle').textContent = subWl;
 
       if (data.length === 0) {
         // 检查是否有未匹配的板块
@@ -2257,6 +2319,7 @@
         '<th>板块名称</th>' +
         '<th>竞价成交额</th>' +
         '<th>较前日变化</th>' +
+        '<th style="white-space:nowrap;min-width:100px">7日竞价趋势</th>' +
         '<th>个股均额</th>' +
         '<th>统计股数</th>' +
         '<th>平均涨幅</th>' +
@@ -2276,10 +2339,12 @@
         else if (changeVal < 0) changeCls2 = 'down';
 
         var bcat = item.board_category || 'concept';
+        var nameEsc = item.name.replace(/'/g, "\\'");
         html += '<tr class="focus-row">' +
           '<td><span class="board-name">' + item.name + '</span></td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
+          '<td><button type="button" class="btn btn-outline board-trend-btn" onclick="openBoardTrendModal(\'' + nameEsc + '\',\'' + dateStr + '\',\'' + bcat + '\')">查看趋势</button></td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +
           '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\',\'' + bcat + '\')">' + item.stock_count + '只</td>' +
           '<td><span class="change-badge ' + changeCls + '">' + sign + changePct.toFixed(2) + '%</span></td>' +
