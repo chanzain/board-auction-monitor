@@ -422,6 +422,27 @@
       color: var(--purple);
       margin-left: 6px;
     }
+    .board-sub-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .board-sub-tab {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .board-sub-tab.active {
+      border-color: var(--purple);
+      color: var(--purple);
+      background: rgba(139,92,246,0.12);
+    }
     .amount-val {
       font-size: 18px;
       font-weight: 700;
@@ -712,6 +733,11 @@
       </div>
     </div>
 
+    <div class="board-sub-tabs" id="boardSubTabRow" style="display:none;">
+      <button type="button" class="board-sub-tab active" id="boardSubTabConcept" onclick="switchBoardCategory('concept')">概念板块</button>
+      <button type="button" class="board-sub-tab" id="boardSubTabIndustry" onclick="switchBoardCategory('industry')">行业板块</button>
+    </div>
+
     <div class="table-card">
       <div class="table-header">
         <div>
@@ -739,6 +765,7 @@
         <li>已有本地数据的日期直接加载，未采集的日期自动从Tushare采集</li>
         <li>交易日 9:25 集合竞价结束后数据最完整</li>
         <li>历史数据自动保存到 <code>data/board_summary/</code> 目录</li>
+        <li>若同时存在 <code>data/concept_board_stock_map.json</code>（概念）与 <code>data/board_stock_map.json</code>（行业），列表上方会出现「概念板块 / 行业板块」切换；采集时会额外写入带后缀的汇总 CSV</li>
       </ol>
     </div>
   </div>
@@ -803,7 +830,7 @@
     <!-- 操作栏：添加板块 + 日期切换 -->
     <div class="action-bar">
       <div class="search-group">
-        <input type="text" id="watchlistAddInput" placeholder="输入板块名称添加到关注..." style="width:220px;" onkeydown="if(event.key==='Enter')addToWatchlist()" />
+        <input type="text" id="watchlistAddInput" placeholder="输入板块名称（按 A 股当前子 Tab 概念/行业校验）..." style="width:280px;max-width:100%;" onkeydown="if(event.key==='Enter')addToWatchlist()" />
         <button class="btn btn-primary" onclick="addToWatchlist()">添加</button>
       </div>
       <div class="divider"></div>
@@ -1048,6 +1075,9 @@
     var currentDate = '';          // 当前查看的日期 YYYYMMDD
     var currentBoardSearch = '';   // 当前搜索关键词
     var currentFullData = null;    // 当前已加载的完整数据
+    var boardMapsMeta = { concept: false, industry: false };
+    var boardCategory = 'concept';
+    var currentModalBoardCategory = 'concept';
 
     /* ===== 工具函数 ===== */
     function formatDateISO(d) {
@@ -1074,6 +1104,87 @@
     }
     function isDateCached(dateStr) {
       return historyDates.indexOf(dateStr) !== -1;
+    }
+
+    /** 按较前日成交额变化数值降序；无对比（--）置底；同变化额时按成交额降序 */
+    function sortBoardsByAmountChangeDesc(rows) {
+      if (!rows || !rows.length) return [];
+      var sorted = rows.slice().sort(function(a, b) {
+        var aMiss = !a.amount_change_display || a.amount_change_display === '--';
+        var bMiss = !b.amount_change_display || b.amount_change_display === '--';
+        if (aMiss && bMiss) return 0;
+        if (aMiss) return 1;
+        if (bMiss) return -1;
+        var diff = (b.amount_change || 0) - (a.amount_change || 0);
+        if (diff !== 0) return diff;
+        return (b.amount || 0) - (a.amount || 0);
+      });
+      sorted.forEach(function(item, idx) {
+        item.rank = idx + 1;
+      });
+      return sorted;
+    }
+
+    function maxBoardAmount(rows) {
+      if (!rows || !rows.length) return 1;
+      var m = rows[0].amount || 0;
+      for (var i = 1; i < rows.length; i++) {
+        var x = rows[i].amount || 0;
+        if (x > m) m = x;
+      }
+      return m > 0 ? m : 1;
+    }
+
+    function boardWithMaxAmount(rows) {
+      if (!rows || !rows.length) return null;
+      var best = rows[0];
+      for (var i = 1; i < rows.length; i++) {
+        if ((rows[i].amount || 0) > (best.amount || 0)) best = rows[i];
+      }
+      return best;
+    }
+
+    async function loadBoardCategoryMeta() {
+      try {
+        var resp = await fetch('/api/board_category_meta');
+        var result = await resp.json();
+        if (result.success) {
+          boardMapsMeta = result.maps || boardMapsMeta;
+          if (result.default_category) boardCategory = result.default_category;
+          updateBoardSubTabUI();
+        }
+      } catch (e) {}
+    }
+
+    function updateBoardSubTabUI() {
+      var row = document.getElementById('boardSubTabRow');
+      var btnC = document.getElementById('boardSubTabConcept');
+      var btnI = document.getElementById('boardSubTabIndustry');
+      if (!row || !btnC || !btnI) return;
+      if (!boardMapsMeta.concept && boardMapsMeta.industry) boardCategory = 'industry';
+      if (boardMapsMeta.concept && !boardMapsMeta.industry) boardCategory = 'concept';
+      var both = boardMapsMeta.concept && boardMapsMeta.industry;
+      row.style.display = both ? 'flex' : 'none';
+      btnC.style.display = boardMapsMeta.concept ? '' : 'none';
+      btnI.style.display = boardMapsMeta.industry ? '' : 'none';
+      btnC.classList.toggle('active', boardCategory === 'concept');
+      btnI.classList.toggle('active', boardCategory === 'industry');
+    }
+
+    function switchBoardCategory(cat) {
+      if (cat === 'concept' && !boardMapsMeta.concept) return;
+      if (cat === 'industry' && !boardMapsMeta.industry) return;
+      if (boardCategory === cat) return;
+      boardCategory = cat;
+      updateBoardSubTabUI();
+      if (currentDate) {
+        if (isDateCached(currentDate)) loadHistory(currentDate);
+        else fetchDate(currentDate);
+      }
+    }
+
+    function boardCategoryLabel() {
+      return boardCategory === 'industry' ? '行业板块' : '概念板块';
     }
 
     function escapeHtml(text) {
@@ -1291,7 +1402,7 @@
     }
 
     function renderFilteredData(data) {
-      var maxAmount = (currentFullData && currentFullData[0]) ? currentFullData[0].amount : 1;
+      var maxAmount = maxBoardAmount(currentFullData);
 
       if (!data || data.length === 0) {
         document.getElementById('tableContent').innerHTML = '<div style="text-align: center; padding: 48px 24px; color: var(--text-secondary);"><p>暂无匹配数据</p></div>';
@@ -1329,7 +1440,7 @@
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +
-          '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\')">' + item.stock_count + '只 📋</td>' +
+          '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\',\'' + boardCategory + '\')">' + item.stock_count + '只 📋</td>' +
           '<td><span class="change-badge ' + changeCls + '">' + sign + changePct.toFixed(2) + '%</span></td>' +
           '<td><span class="rise-fall"><span class="rise">涨' + item.rise + '</span> / <span class="fall">跌' + item.fall + '</span></span></td>' +
           '</tr>';
@@ -1364,7 +1475,7 @@
       document.getElementById('boardSearch').value = '';
       showLoading('正在加载 ' + formatDateISO(dateStr) + ' 的数据...');
       try {
-        var resp = await fetch('/api/history/' + dateStr);
+        var resp = await fetch('/api/history/' + dateStr + '?category=' + encodeURIComponent(boardCategory));
         var result = await resp.json();
         if (result.success) {
           currentDate = result.date;
@@ -1384,9 +1495,9 @@
     async function loadHistoryWithSearch(dateStr, keyword) {
       showLoading('正在搜索...');
       try {
-        var url = '/api/history/' + dateStr;
+        var url = '/api/history/' + dateStr + '?category=' + encodeURIComponent(boardCategory);
         if (keyword) {
-          url += '?board_name=' + encodeURIComponent(keyword);
+          url += '&board_name=' + encodeURIComponent(keyword);
         }
         var resp = await fetch(url);
         var result = await resp.json();
@@ -1418,7 +1529,7 @@
         var resp = await fetch('/api/fetch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: date, source: source })
+          body: JSON.stringify({ date: date, source: source, category: boardCategory })
         });
         var result = await resp.json();
         if (result.success) {
@@ -1444,17 +1555,24 @@
       var total_amount = result.total_amount;
       var total_stocks = result.total_stocks;
       var total_boards = result.total_boards;
-      var data = result.data;
+      var raw = result.data || [];
+      var data = sortBoardsByAmountChangeDesc(raw);
 
-      currentFullData = data || [];
+      currentFullData = data;
 
       document.getElementById('statDate').textContent = date;
       document.getElementById('statTotalAmount').textContent = total_amount ? formatYiAmount(total_amount) : '--';
       document.getElementById('statStocks').textContent = total_stocks || '--';
       document.getElementById('statBoards').textContent = total_boards || '--';
-      document.getElementById('statTop1').textContent = data && data[0] ? data[0].amount_display : '--';
+      var topAmtRow = boardWithMaxAmount(data);
+      document.getElementById('statTop1').textContent = topAmtRow ? topAmtRow.amount_display : '--';
+      if (result.board_category) {
+        boardCategory = result.board_category;
+        updateBoardSubTabUI();
+      }
       var sourceInfo = result.source ? ' | 数据源: ' + result.source : '';
-      document.getElementById('tableSubtitle').textContent = '数据日期: ' + date + sourceInfo + ' | 共 ' + total_boards + ' 个板块';
+      var catNote = (boardMapsMeta.concept && boardMapsMeta.industry) ? (' | ' + boardCategoryLabel()) : '';
+      document.getElementById('tableSubtitle').textContent = '数据日期: ' + date + sourceInfo + catNote + ' | 共 ' + total_boards + ' 个板块 | 按较前日变化降序';
 
       if (!data || data.length === 0) {
         document.getElementById('tableContent').innerHTML = '<div style="text-align: center; padding: 48px 24px; color: var(--text-secondary);"><p>暂无数据</p></div>';
@@ -1487,13 +1605,13 @@
     /* ===== 初始化 ===== */
     window.onload = function() {
       updateClock();
-      loadHistoryDates();
-      // 默认加载最新一天的历史数据
-      setTimeout(function() {
+      (async function() {
+        await loadBoardCategoryMeta();
+        await loadHistoryDates();
         if (historyDates.length > 0 && !currentFullData) {
           loadHistory(historyDates[0]);
         }
-      }, 500);
+      })();
     };
 
     /* ============================================ */
@@ -1943,11 +2061,13 @@
       document.getElementById('conceptDetailModal').style.display = 'none';
     }
 
-    function openStockModal(boardName) {
+    function openStockModal(boardName, category) {
       if (!currentDate) {
         showMessage('warning', '请先选择日期');
         return;
       }
+
+      currentModalBoardCategory = category || boardCategory || 'concept';
 
       // 设置弹窗标题
       document.getElementById('modalTitle').textContent = boardName + ' - 成分股竞价详情';
@@ -1964,7 +2084,7 @@
       document.getElementById('filterAll').classList.add('active');
 
       // 加载数据
-      loadStockData(boardName);
+      loadStockData(boardName, currentModalBoardCategory);
     }
 
     function closeStockModal() {
@@ -1974,16 +2094,18 @@
       currentModalBoardNameForConcept = '';
     }
 
-    async function loadStockData(boardName) {
+    async function loadStockData(boardName, category) {
       var tbody = document.getElementById('stockTableBody');
       tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
 
       try {
-        var url = '/api/board_stocks/' + currentDate + '/' + encodeURIComponent(boardName);
+        var cat = category || boardCategory || 'concept';
+        var url = '/api/board_stocks/' + currentDate + '/' + encodeURIComponent(boardName) + '?category=' + encodeURIComponent(cat);
         var resp = await fetch(url);
         var result = await resp.json();
 
         if (result.success) {
+          if (result.board_category) currentModalBoardCategory = result.board_category;
           currentModalBoardNameForConcept = result.board_name || boardName;
           currentStockData = result.data || [];
           updateFilterCounts();
@@ -2189,7 +2311,7 @@
         var resp = await fetch('/api/watchlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ board_name: name })
+          body: JSON.stringify({ board_name: name, category: boardCategory })
         });
         var result = await resp.json();
         if (result.success) {
@@ -2242,8 +2364,10 @@
         return;
       }
       var html = '';
-      myWatchlist.forEach(function(name) {
-        html += '<span class="watchlist-tag">' + name +
+      myWatchlist.forEach(function(entry) {
+        var name = (typeof entry === 'object' && entry && entry.name) ? entry.name : String(entry);
+        var cat = (typeof entry === 'object' && entry && entry.category === 'industry') ? '行业' : '概念';
+        html += '<span class="watchlist-tag">' + name + '<span style="opacity:.65;font-size:11px;margin-left:4px;">(' + cat + ')</span>' +
           '<span class="tag-remove" onclick="removeFromWatchlist(\'' + name.replace(/'/g, "\\'") + '\')" title="移除关注">&times;</span></span>';
       });
       container.innerHTML = html;
@@ -2413,12 +2537,13 @@
         if (changeVal > 0) changeCls2 = 'up';
         else if (changeVal < 0) changeCls2 = 'down';
 
+        var bcat = item.board_category || 'concept';
         html += '<tr class="focus-row">' +
           '<td><span class="board-name">' + item.name + '</span></td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +
-          '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\')">' + item.stock_count + '只</td>' +
+          '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\',\'' + bcat + '\')">' + item.stock_count + '只</td>' +
           '<td><span class="change-badge ' + changeCls + '">' + sign + changePct.toFixed(2) + '%</span></td>' +
           '<td><span class="rise-fall"><span class="rise">涨' + item.rise + '</span> / <span class="fall">跌' + item.fall + '</span></span></td>' +
           '</tr>';

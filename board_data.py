@@ -12,6 +12,8 @@ from pathlib import Path
 from datetime import datetime
 
 DATA_DIR = Path(__file__).parent / "data"
+CONCEPT_BOARD_MAP_PATH = DATA_DIR / "concept_board_stock_map.json"
+INDUSTRY_BOARD_MAP_PATH = DATA_DIR / "board_stock_map.json"
 
 # 初始化 Tushare
 from config import TUSHARE_TOKEN
@@ -145,22 +147,54 @@ def save_board_map(board_map: dict, filepath: str = None):
     print(f"板块映射已保存: {filepath}")
 
 
+def load_concept_board_map() -> dict:
+    """东财概念板块 → 成分股（若已生成 concept_board_stock_map.json）"""
+    if CONCEPT_BOARD_MAP_PATH.exists():
+        with open(CONCEPT_BOARD_MAP_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def load_industry_board_map() -> dict:
+    """Tushare 行业/关键词聚合板块 → 成分股（board_stock_map.json）"""
+    if INDUSTRY_BOARD_MAP_PATH.exists():
+        with open(INDUSTRY_BOARD_MAP_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
 def load_board_map(filepath: str = None) -> dict:
-    """加载板块映射（优先加载概念板块映射）"""
+    """加载板块映射（优先概念，与历史行为一致）"""
     if filepath is None:
-        # 优先尝试概念板块映射
-        concept_path = str(DATA_DIR / "concept_board_stock_map.json")
-        default_path = str(DATA_DIR / "board_stock_map.json")
-        if os.path.exists(concept_path):
-            filepath = concept_path
-        elif os.path.exists(default_path):
-            filepath = default_path
-        else:
-            return {}
+        cm = load_concept_board_map()
+        if cm:
+            return cm
+        return load_industry_board_map()
     if os.path.exists(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
+
+
+def load_board_map_for_category(category: str) -> dict:
+    """
+    按分类加载映射。
+    category: concept | industry
+    """
+    c = (category or "").strip().lower()
+    if c == "industry":
+        return load_industry_board_map()
+    if c == "concept":
+        return load_concept_board_map()
+    return load_board_map()
+
+
+def board_maps_available() -> dict:
+    """哪些板块映射文件存在（供前端子 Tab 展示）"""
+    return {
+        "concept": bool(CONCEPT_BOARD_MAP_PATH.exists()),
+        "industry": bool(INDUSTRY_BOARD_MAP_PATH.exists()),
+    }
 
 
 def refresh_board_data():

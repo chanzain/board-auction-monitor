@@ -165,6 +165,60 @@ def _fetch_from_eastmoney(trade_date: str) -> pd.DataFrame:
     return df
 
 
+def _fetch_from_akshare_spot_em(trade_date: str) -> pd.DataFrame:
+    """
+    最后备用：AkShare 封装的东财沪深京实时表（与 stock_zh_a_spot_em 一致）。
+    非竞价时段 Tushare stk_auction 常为空；直连东财仍失败时用此路径。
+    """
+    try:
+        import akshare as ak
+        from eastmoney_auction import _em_code_to_tushare
+    except ImportError:
+        print("[AkShare] 未安装 akshare，跳过备用源")
+        return pd.DataFrame()
+
+    try:
+        raw_df = ak.stock_zh_a_spot_em()
+    except Exception as e:
+        print(f"[AkShare] stock_zh_a_spot_em 失败: {e}")
+        return pd.DataFrame()
+
+    if raw_df is None or raw_df.empty:
+        return pd.DataFrame()
+
+    rows = []
+    for _, row in raw_df.iterrows():
+        code = str(row.get("代码", "")).strip()
+        ts_code = _em_code_to_tushare(code)
+        if not ts_code:
+            continue
+        vol_hand = float(pd.to_numeric(row.get("成交量"), errors="coerce") or 0)
+        amount = float(pd.to_numeric(row.get("成交额"), errors="coerce") or 0)
+        if vol_hand == 0 and amount == 0:
+            continue
+        rows.append({
+            "ts_code": ts_code,
+            "name": str(row.get("名称", "") or ""),
+            "trade_date": trade_date,
+            "price": float(pd.to_numeric(row.get("最新价"), errors="coerce") or 0),
+            "pre_close": float(pd.to_numeric(row.get("昨收"), errors="coerce") or 0),
+            "vol": vol_hand * 100.0,
+            "amount": amount,
+        })
+
+    df = pd.DataFrame(rows)
+    if df.empty:
+        print("[AkShare] 解析后无有效成交行")
+        return pd.DataFrame()
+
+    print(f"[AkShare] 东财全市场行情 {len(df)} 条（备用源）")
+    AUCTION_DIR.mkdir(parents=True, exist_ok=True)
+    out = AUCTION_DIR / f"auction_{trade_date}.csv"
+    df.to_csv(out, index=False, encoding="utf-8-sig")
+    print(f"  数据已保存: {out}")
+    return df
+
+
 def fetch_auction_data(trade_date: str, source: str = "tushare") -> pd.DataFrame:
     """
     获取指定日期的全市场集合竞价数据
@@ -195,13 +249,28 @@ def fetch_auction_data(trade_date: str, source: str = "tushare") -> pd.DataFrame
         if df is not None and not df.empty:
             return df
         print("[auto] Tushare 无数据，切换为东方财富源...")
-        source = "eastmoney"
+        df = _fetch_from_eastmoney(trade_date)
+        if df is not None and not df.empty:
+            return df
+        print("[auto] 东方财富仍无数据，尝试 AkShare 东财全市场行情（备用）...")
+        return _fetch_from_akshare_spot_em(trade_date)
 
     if source == "eastmoney":
-        return _fetch_from_eastmoney(trade_date)
+        df = _fetch_from_eastmoney(trade_date)
+        if df is not None and not df.empty:
+            return df
+        print("[eastmoney] 直连东财无数据，尝试 AkShare 备用...")
+        return _fetch_from_akshare_spot_em(trade_date)
 
-    # 默认：Tushare
-    return _fetch_from_tushare(trade_date)
+    df = _fetch_from_tushare(trade_date)
+    if df is not None and not df.empty:
+        return df
+    print("[tushare] 无数据，尝试东方财富...")
+    df = _fetch_from_eastmoney(trade_date)
+    if df is not None and not df.empty:
+        return df
+    print("[tushare] 东财无数据，尝试 AkShare 备用...")
+    return _fetch_from_akshare_spot_em(trade_date)
 
 
 def _fetch_from_tushare(trade_date: str) -> pd.DataFrame:
@@ -337,23 +406,31 @@ def aggregate_board_amount(
     return result_df
 
 
-def save_summary(summary_df: pd.DataFrame, trade_date: str, source: str = "tushare"):
-    """保存汇总数据为 CSV 和 Excel（同时记录数据源）"""
+def save_summary(
+    summary_df: pd.DataFrame,
+    trade_date: str,
+    source: str = "tushare",
+    category_suffix: Optional[str] = None,
+):
+    """
+    保存汇总数据为 CSV（同时记录数据源）。
+    category_suffix: 为 concept / industry 时写入 board_auction_{date}_{suffix}.csv；
+    为 None 时写入 board_auction_{date}.csv 并额外写 Excel（主文件）。
+    """
     SUMMARY_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 添加数据源列
     summary_df = summary_df.copy()
     summary_df["data_source"] = source
 
-    # CSV
-    csv_path = SUMMARY_DIR / f"board_auction_{trade_date}.csv"
+    extra = f"_{category_suffix}" if category_suffix else ""
+    csv_path = SUMMARY_DIR / f"board_auction_{trade_date}{extra}.csv"
     summary_df.to_csv(csv_path, encoding="utf-8-sig")
     print(f"  CSV 已保存: {csv_path}")
 
-    # Excel（带格式）
-    excel_path = SUMMARY_DIR / f"board_auction_{trade_date}.xlsx"
-    summary_df.to_excel(excel_path, engine="openpyxl")
-    print(f"  Excel 已保存: {excel_path}")
+    if not category_suffix:
+        excel_path = SUMMARY_DIR / f"board_auction_{trade_date}.xlsx"
+        summary_df.to_excel(excel_path, engine="openpyxl")
+        print(f"  Excel 已保存: {excel_path}")
 
 
 def run_analysis(trade_date: str = "today", top_n: int = TOP_N, source: str = "auto"):

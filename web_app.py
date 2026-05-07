@@ -10,7 +10,13 @@ from datetime import datetime
 from flask import Flask, render_template, jsonify, request
 
 from config import WEB_HOST, WEB_PORT
-from board_data import load_board_map
+from board_data import (
+    load_board_map,
+    load_board_map_for_category,
+    load_concept_board_map,
+    load_industry_board_map,
+    board_maps_available,
+)
 from board_concept_intro import get_board_concept_intro
 from stock_concept_map import build_stock_concept_index, format_concept_preview
 from auction_monitor import (
@@ -109,28 +115,71 @@ def get_previous_trade_date(date_str):
     return get_previous_trade_day(date_str)
 
 
-def calculate_amount_change(current_df, prev_date_str):
-    """计算当前数据相比前一天的成交额变化"""
+def _default_board_category() -> str:
+    return "concept" if load_concept_board_map() else "industry"
+
+
+def _normalize_board_category_arg(arg) -> str:
+    want = (arg or "").strip().lower()
+    has_c = bool(load_concept_board_map())
+    has_i = bool(load_industry_board_map())
+    if want == "industry" and has_i:
+        return "industry"
+    if want == "concept" and has_c:
+        return "concept"
+    if has_c:
+        return "concept"
+    if has_i:
+        return "industry"
+    return "concept"
+
+
+def _infer_board_category(name: str) -> str:
+    cm = load_concept_board_map()
+    im = load_industry_board_map()
+    in_c = bool(cm and name in cm)
+    in_i = bool(im and name in im)
+    if in_c and not in_i:
+        return "concept"
+    if in_i and not in_c:
+        return "industry"
+    if in_c:
+        return "concept"
+    return _default_board_category()
+
+
+def _summary_csv_path_for_category(date_str: str, category: str):
+    """当日汇总 CSV：优先分类文件，否则兼容旧版无后缀文件"""
+    cat = _normalize_board_category_arg(category)
+    tagged = SUMMARY_DIR / f"board_auction_{date_str}_{cat}.csv"
+    if tagged.exists():
+        return tagged
+    legacy = SUMMARY_DIR / f"board_auction_{date_str}.csv"
+    if legacy.exists():
+        return legacy
+    return None
+
+
+def _board_amount_map_from_prev_date(prev_date_str: str, category: str) -> dict:
+    """上一交易日各板块成交额，用于日环比（与当前分类对齐）"""
     if not prev_date_str:
         return {}
-
-    prev_csv = SUMMARY_DIR / f"board_auction_{prev_date_str}.csv"
-    if not prev_csv.exists():
-        return {}
-
-    try:
-        import pandas as pd
-        prev_df = pd.read_csv(prev_csv, encoding="utf-8-sig")
-        if "排名" in prev_df.columns:
-            prev_df = prev_df.set_index("排名")
-
-        # 构建板块名称到成交额的映射
-        change_map = {}
-        for idx, row in prev_df.iterrows():
-            change_map[row["板块名称"]] = _safe_float(row["成交额(元)"])
-        return change_map
-    except Exception:
-        return {}
+    cat = _normalize_board_category_arg(category)
+    candidates = [
+        SUMMARY_DIR / f"board_auction_{prev_date_str}_{cat}.csv",
+        SUMMARY_DIR / f"board_auction_{prev_date_str}.csv",
+    ]
+    for p in candidates:
+        if not p.exists():
+            continue
+        prev_df = load_summary_csv(p)
+        if prev_df is None or prev_df.empty:
+            continue
+        return {
+            str(row["板块名称"]): _safe_float(row["成交额(元)"])
+            for idx, row in prev_df.iterrows()
+        }
+    return {}
 
 
 def _safe_float(val, default=0.0):
@@ -199,9 +248,10 @@ def compute_market_data(auction_df):
     return result
 
 
-def build_board_rows(summary_df, prev_date):
-    """构建板块数据行"""
-    change_map = calculate_amount_change(summary_df, prev_date) if prev_date else {}
+def build_board_rows(summary_df, prev_date, category: str = None):
+    """构建板块数据行；category 用于与上一交易日的分类汇总对齐（日环比）"""
+    cat = _normalize_board_category_arg(category) if category else _default_board_category()
+    change_map = _board_amount_map_from_prev_date(prev_date, cat) if prev_date else {}
 
     rows = []
     for idx, row in summary_df.iterrows():
@@ -252,13 +302,17 @@ def api_fetch():
         page = int(request.json.get("page", 1))
         page_size = int(request.json.get("page_size", 9999))
         source = request.json.get("source", "auto")      # tushare / eastmoney / auto
+        category = _normalize_board_category_arg(request.json.get("category"))
 
         auction_df = fetch_auction_data(trade_date, source=source)
 
         if auction_df.empty:
-            return jsonify({"success": False, "message": "未获取到竞价数据"})
+            return jsonify({
+                "success": False,
+                "message": "未获取到竞价数据。请确认当日为交易日且网络正常；自动模式会依次尝试 Tushare、东财多节点与 AkShare。",
+            })
 
-        board_map = load_board_map()
+        board_map = load_board_map_for_category(category)
         if not board_map:
             return jsonify({
                 "success": False,
@@ -271,9 +325,32 @@ def api_fetch():
 
         actual_date = auction_df["trade_date"].iloc[0]
 
-        # 保存
         from auction_monitor import save_summary
-        save_summary(summary_df, actual_date, source=source)
+
+        concept_m = load_concept_board_map()
+        industry_m = load_industry_board_map()
+        if concept_m:
+            save_summary(
+                aggregate_board_amount(auction_df, concept_m, FOCUS_BOARDS),
+                actual_date,
+                source=source,
+                category_suffix="concept",
+            )
+        if industry_m:
+            save_summary(
+                aggregate_board_amount(auction_df, industry_m, FOCUS_BOARDS),
+                actual_date,
+                source=source,
+                category_suffix="industry",
+            )
+        primary_m = load_board_map()
+        if primary_m:
+            save_summary(
+                aggregate_board_amount(auction_df, primary_m, FOCUS_BOARDS),
+                actual_date,
+                source=source,
+                category_suffix=None,
+            )
 
         # 如果指定了板块名称，只返回该板块数据
         if board_name:
@@ -288,13 +365,15 @@ def api_fetch():
         end = start + page_size
         paged_df = summary_df.iloc[start:end]
 
-        rows = build_board_rows(paged_df, prev_date)
+        rows = build_board_rows(paged_df, prev_date, category)
 
         return jsonify({
             "success": True,
             "date": actual_date,
             "prev_date": prev_date,
             "source": source,
+            "board_category": category,
+            "maps": board_maps_available(),
             "total_amount": float(auction_df["amount"].sum()),
             "total_stocks": len(auction_df),
             "total_boards": len(summary_df),
@@ -311,49 +390,58 @@ def api_fetch():
 
 @app.route("/api/history/<date_str>")
 def api_history(date_str):
-    """查看历史汇总数据（支持分页和板块过滤）"""
-    csv_path = SUMMARY_DIR / f"board_auction_{date_str}.csv"
-    if not csv_path.exists():
-        return jsonify({"success": False, "message": f"未找到 {date_str} 的数据"})
+    """查看历史汇总数据（支持分页、板块过滤、概念/行业分类）"""
+    import pandas as pd
 
-    summary_df = load_summary_csv(csv_path)
-    if summary_df is None or summary_df.empty:
-        return jsonify({"success": False, "message": "数据为空"})
+    category = _normalize_board_category_arg(request.args.get("category"))
+    board_map = load_board_map_for_category(category)
+    if not board_map:
+        return jsonify({"success": False, "message": "板块映射为空，请先初始化板块数据"})
 
-    # 获取请求参数
     board_name = request.args.get("board_name", "")
     page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 9999))
 
-    # 获取全A成交额 + 总股票数（从auction文件）
-    total_amount = 0
-    total_stocks = 0
     auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
+    summary_df = None
+
     if auction_csv.exists():
         try:
-            import pandas as pd
+            auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
+            summary_df = aggregate_board_amount(auction_df, board_map, FOCUS_BOARDS)
+        except Exception:
+            summary_df = None
+
+    if summary_df is None or summary_df.empty:
+        csv_path = _summary_csv_path_for_category(date_str, category)
+        if csv_path is None:
+            return jsonify({"success": False, "message": f"未找到 {date_str} 的数据"})
+        summary_df = load_summary_csv(csv_path)
+        if summary_df is None or summary_df.empty:
+            return jsonify({"success": False, "message": "数据为空"})
+
+    total_amount = 0
+    total_stocks = 0
+    if auction_csv.exists():
+        try:
             auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
             total_amount = float(auction_df["amount"].sum())
             total_stocks = len(auction_df)
         except Exception:
             pass
 
-    # 如果指定了板块名称，过滤
     if board_name:
         summary_df = summary_df[summary_df["板块名称"].str.contains(board_name, na=False)]
 
-    # 计算与前一天的变化
     prev_date = get_previous_trade_date(date_str)
 
-    # 分页
     total = len(summary_df)
     start = (page - 1) * page_size
     end = start + page_size
     paged_df = summary_df.iloc[start:end]
 
-    rows = build_board_rows(paged_df, prev_date)
+    rows = build_board_rows(paged_df, prev_date, category)
 
-    # 读取数据源信息
     data_source = ""
     if "data_source" in summary_df.columns:
         source_vals = summary_df["data_source"].dropna().unique()
@@ -362,6 +450,8 @@ def api_history(date_str):
     return jsonify({
         "success": True,
         "date": date_str,
+        "board_category": category,
+        "maps": board_maps_available(),
         "prev_date": prev_date,
         "source": data_source,
         "total_amount": total_amount,
@@ -382,8 +472,8 @@ def api_board_stocks(date_str, board_name):
         page = int(request.args.get("page", 1))
         page_size = int(request.args.get("page_size", 0))  # 默认0=返回全部
 
-        # 加载板块映射
-        board_map = load_board_map()
+        category = _normalize_board_category_arg(request.args.get("category"))
+        board_map = load_board_map_for_category(category)
         if not board_map or board_name not in board_map:
             return jsonify({"success": False, "message": f"未找到板块: {board_name}"})
 
@@ -423,7 +513,8 @@ def api_board_stocks(date_str, board_name):
                         "pre_close": _safe_float(row["pre_close"]),
                     }
 
-        stock_concept_idx = build_stock_concept_index(board_map)
+        idx_map = load_concept_board_map() or board_map
+        stock_concept_idx = build_stock_concept_index(idx_map)
 
         # 构建返回数据
         all_rows = []
@@ -500,6 +591,7 @@ def api_board_stocks(date_str, board_name):
             "success": True,
             "date": date_str,
             "board_name": board_name,
+            "board_category": category,
             "prev_date": prev_date,
             "total_count": total,
             "page": page,
@@ -516,7 +608,7 @@ def api_board_stocks(date_str, board_name):
 def api_stock_concepts_detail(ts_code):
     """单只股票：所属全部概念/题材 + 各题材同花顺简介（按需加载，带概念级缓存）"""
     try:
-        board_map = load_board_map()
+        board_map = load_concept_board_map() or load_board_map()
         if not board_map:
             return jsonify({"success": False, "message": "板块映射为空"})
 
@@ -560,8 +652,12 @@ def api_stock_concepts_detail(ts_code):
 
 @app.route("/api/boards")
 def api_boards():
-    """获取所有板块名称列表"""
-    board_map = load_board_map()
+    """获取所有板块名称列表（可选 category=concept|industry）"""
+    cat = request.args.get("category")
+    if cat:
+        board_map = load_board_map_for_category(_normalize_board_category_arg(cat))
+    else:
+        board_map = load_board_map()
     if not board_map:
         return jsonify({"success": False, "message": "板块映射为空"})
     return jsonify({
@@ -570,14 +666,30 @@ def api_boards():
     })
 
 
+@app.route("/api/board_category_meta")
+def api_board_category_meta():
+    """概念/行业映射是否可用及默认分类（供前端子 Tab）"""
+    return jsonify({
+        "success": True,
+        "maps": board_maps_available(),
+        "default_category": _default_board_category(),
+    })
+
+
 @app.route("/api/history_dates")
 def api_history_dates():
-    """获取所有有数据的历史日期列表"""
-    dates = []
+    """获取所有有数据的历史日期列表（YYYYMMDD，去重）"""
+    dates_set = set()
     if SUMMARY_DIR.exists():
-        for f in sorted(SUMMARY_DIR.glob("board_auction_*.csv"), reverse=True):
-            date_str = f.stem.replace("board_auction_", "")
-            dates.append(date_str)
+        for f in SUMMARY_DIR.glob("board_auction_*.csv"):
+            rest = f.stem.replace("board_auction_", "", 1)
+            if rest.endswith("_concept"):
+                dates_set.add(rest[: -len("_concept")])
+            elif rest.endswith("_industry"):
+                dates_set.add(rest[: -len("_industry")])
+            elif len(rest) == 8 and rest.isdigit():
+                dates_set.add(rest)
+    dates = sorted(dates_set, reverse=True)
     return jsonify({
         "success": True,
         "dates": dates,
@@ -668,19 +780,36 @@ def api_market_overview():
 # ========== 我的关注：板块关注列表管理 ==========
 
 def _load_watchlist():
-    """加载关注列表，返回 list[str]"""
-    if WATCHLIST_FILE.exists():
-        try:
-            data = json.loads(WATCHLIST_FILE.read_text(encoding="utf-8"))
-            if isinstance(data, list):
-                return data
-        except Exception:
-            pass
-    return []
+    """加载关注列表，返回 list[{"name","category"}]；旧版字符串列表会自动迁移"""
+    if not WATCHLIST_FILE.exists():
+        return []
+    try:
+        data = json.loads(WATCHLIST_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    if not isinstance(data, list) or not data:
+        return []
+    if isinstance(data[0], dict):
+        out = []
+        for item in data:
+            nm = str(item.get("name", "")).strip()
+            if not nm:
+                continue
+            cat = _normalize_board_category_arg(item.get("category"))
+            out.append({"name": nm, "category": cat})
+        return out
+    migrated = []
+    for n in data:
+        nm = str(n).strip()
+        if not nm:
+            continue
+        migrated.append({"name": nm, "category": _infer_board_category(nm)})
+    _save_watchlist(migrated)
+    return migrated
 
 
 def _save_watchlist(watchlist):
-    """保存关注列表"""
+    """保存关注列表（统一为 {name, category}）"""
     WATCHLIST_FILE.parent.mkdir(parents=True, exist_ok=True)
     WATCHLIST_FILE.write_text(
         json.dumps(watchlist, ensure_ascii=False, indent=2),
@@ -699,20 +828,21 @@ def api_get_watchlist():
 
 @app.route("/api/watchlist", methods=["POST"])
 def api_add_watchlist():
-    """添加板块到关注列表（支持批量）"""
+    """添加板块到关注列表；可选 category=concept|industry（默认按当前映射推断）"""
     data = request.get_json(silent=True) or {}
     board_name = data.get("board_name", "").strip()
+    category = _normalize_board_category_arg(data.get("category"))
 
     if not board_name:
         return jsonify({"success": False, "message": "板块名称不能为空"})
 
     watchlist = _load_watchlist()
+    if any(x["name"] == board_name for x in watchlist):
+        return jsonify({"success": False, "message": f"「{board_name}」已在关注列表中"})
 
-    # 验证板块名称是否存在于板块映射中
-    board_map = load_board_map()
-    if board_map and board_name not in board_map:
-        # 尝试模糊匹配提示
-        similar = [b for b in board_map if board_name in b]
+    board_map = load_board_map_for_category(category)
+    if not board_map or board_name not in board_map:
+        similar = [b for b in board_map if board_name in b] if board_map else []
         if similar:
             return jsonify({
                 "success": False,
@@ -720,17 +850,14 @@ def api_add_watchlist():
             })
         return jsonify({"success": False, "message": f"未找到板块「{board_name}」"})
 
-    if board_name in watchlist:
-        return jsonify({"success": False, "message": f"「{board_name}」已在关注列表中"})
-
-    watchlist.append(board_name)
+    watchlist.append({"name": board_name, "category": category})
     _save_watchlist(watchlist)
     return jsonify({"success": True, "message": f"已添加「{board_name}」", "watchlist": watchlist})
 
 
 @app.route("/api/watchlist", methods=["DELETE"])
 def api_remove_watchlist():
-    """从关注列表移除板块"""
+    """从关注列表移除板块（按名称）"""
     data = request.get_json(silent=True) or {}
     board_name = data.get("board_name", "").strip()
 
@@ -738,17 +865,19 @@ def api_remove_watchlist():
         return jsonify({"success": False, "message": "板块名称不能为空"})
 
     watchlist = _load_watchlist()
-    if board_name not in watchlist:
+    new_wl = [x for x in watchlist if x["name"] != board_name]
+    if len(new_wl) == len(watchlist):
         return jsonify({"success": False, "message": f"「{board_name}」不在关注列表中"})
 
-    watchlist.remove(board_name)
-    _save_watchlist(watchlist)
-    return jsonify({"success": True, "message": f"已移除「{board_name}」", "watchlist": watchlist})
+    _save_watchlist(new_wl)
+    return jsonify({"success": True, "message": f"已移除「{board_name}」", "watchlist": new_wl})
 
 
 @app.route("/api/watchlist/data")
 def api_watchlist_data():
-    """获取关注板块在指定日期的竞价数据"""
+    """获取关注板块在指定日期的竞价数据（按每条关注的分类取汇总）"""
+    import pandas as pd
+
     date_str = request.args.get("date", "")
     if not date_str:
         return jsonify({"success": False, "message": "请指定日期"})
@@ -757,32 +886,49 @@ def api_watchlist_data():
     if not watchlist:
         return jsonify({"success": True, "data": [], "watchlist": []})
 
-    # 加载当天的汇总数据
-    csv_path = SUMMARY_DIR / f"board_auction_{date_str}.csv"
-    if not csv_path.exists():
+    auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
+    has_any = auction_csv.exists() or bool(_summary_csv_path_for_category(date_str, "concept")) or bool(_summary_csv_path_for_category(date_str, "industry"))
+    if not has_any and not (SUMMARY_DIR / f"board_auction_{date_str}.csv").exists():
         return jsonify({"success": False, "message": f"未找到 {date_str} 的数据"})
 
-    summary_df = load_summary_csv(csv_path)
-    if summary_df is None or summary_df.empty:
-        return jsonify({"success": False, "message": "数据为空"})
-
-    # 过滤出关注板块
-    watch_df = summary_df[summary_df["板块名称"].isin(watchlist)]
-
-    # 计算与前一天的变化
     prev_date = get_previous_trade_date(date_str)
+    rows_out = []
 
-    rows = build_board_rows(watch_df, prev_date)
+    for entry in watchlist:
+        name = entry["name"]
+        cat = _normalize_board_category_arg(entry.get("category"))
+        board_map = load_board_map_for_category(cat)
+        if not board_map or name not in board_map:
+            continue
+        summary_df = None
+        if auction_csv.exists():
+            try:
+                auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
+                summary_df = aggregate_board_amount(auction_df, board_map, FOCUS_BOARDS)
+            except Exception:
+                summary_df = None
+        if summary_df is None or summary_df.empty:
+            sp = _summary_csv_path_for_category(date_str, cat)
+            if sp:
+                summary_df = load_summary_csv(sp)
+        if summary_df is None or summary_df.empty:
+            continue
+        one = summary_df[summary_df["板块名称"] == name]
+        if one.empty:
+            continue
+        br = build_board_rows(one, prev_date, cat)
+        for r in br:
+            r["board_category"] = cat
+        rows_out.extend(br)
 
-    # 按成交额降序排列
-    rows.sort(key=lambda x: x["amount"], reverse=True)
+    rows_out.sort(key=lambda x: x["amount"], reverse=True)
 
     return jsonify({
         "success": True,
         "date": date_str,
         "prev_date": prev_date,
         "watchlist": watchlist,
-        "data": rows,
+        "data": rows_out,
     })
 
 

@@ -1,7 +1,22 @@
 [
-  "有色金属",
-  "CPO概念",
-  "商业航天",
-  "国产芯片",
-  "锂矿概念"
+  {
+    "name": "有色金属",
+    "category": "concept"
+  },
+  {
+    "name": "CPO概念",
+    "category": "concept"
+  },
+  {
+    "name": "商业航天",
+    "category": "concept"
+  },
+  {
+    "name": "国产芯片",
+    "category": "concept"
+  },
+  {
+    "name": "锂矿概念",
+    "category": "concept"
+  }
 ]
