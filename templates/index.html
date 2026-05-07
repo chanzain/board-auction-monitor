@@ -791,7 +791,7 @@
       <div class="table-header">
         <div>
           <h2>大盘指数每日数据对比</h2>
-          <div class="subtitle">全A / 上证 / 深证 / 创业板 竞价成交额与涨跌幅</div>
+          <div class="subtitle">全A / 上证 / 深证 / 创业板 竞价成交额；次行为较前一日增减（亿元）</div>
         </div>
         <!-- 日期导航 -->
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -1965,21 +1965,19 @@
         return;
       }
 
-      tableData.forEach(function(row) {
+      tableData.forEach(function(row, idx) {
         var dateFormatted = row.date.slice(0,4) + '-' + row.date.slice(4,6) + '-' + row.date.slice(6,8);
         var weekDay = formatWeekDay(row.date);
+        var prevRow = tableData[idx + 1];
 
         html += '<tr>';
         html += '<td><div class="market-date">' + dateFormatted + '</div><div class="market-date-sub">' + weekDay + '</div></td>';
 
-        // 全A
-        html += renderMarketCell(row['全A']);
-        // 上证
-        html += renderMarketCell(row['上证']);
-        // 深证
-        html += renderMarketCell(row['深证']);
-        // 创业板
-        html += renderMarketCell(row['创业板']);
+        // 全A（次行：与列表中下一行即上一交易日的成交额差额，单位亿）
+        html += renderMarketCell(row['全A'], prevRow ? prevRow['全A'] : null);
+        html += renderMarketCell(row['上证'], prevRow ? prevRow['上证'] : null);
+        html += renderMarketCell(row['深证'], prevRow ? prevRow['深证'] : null);
+        html += renderMarketCell(row['创业板'], prevRow ? prevRow['创业板'] : null);
 
         html += '</tr>';
       });
@@ -1987,17 +1985,25 @@
       tbody.innerHTML = html;
     }
 
-    function renderMarketCell(data) {
+    function renderMarketCell(data, prevData) {
       if (!data) {
         return '<td><div class="market-amount">--</div><div class="market-change flat">--</div></td>';
       }
       var amountStr = formatYiAmount(data.auction_amount);
-      var pct = data.avg_change_pct || 0;
-      var cls = pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
-      var sign = pct > 0 ? '+' : '';
+      var deltaYi = null;
+      if (prevData && data.auction_amount != null && prevData.auction_amount != null) {
+        deltaYi = (Number(data.auction_amount) - Number(prevData.auction_amount)) / 1e8;
+      }
+      var cls = 'flat';
+      var secondLine = '--';
+      if (deltaYi !== null && !Number.isNaN(deltaYi)) {
+        cls = deltaYi > 0 ? 'up' : deltaYi < 0 ? 'down' : 'flat';
+        var sign = deltaYi > 0 ? '+' : '';
+        secondLine = sign + deltaYi.toFixed(2) + '亿';
+      }
       return '<td>' +
         '<div class="market-amount">' + amountStr + '</div>' +
-        '<div class="market-change ' + cls + '">' + sign + pct.toFixed(2) + '%</div>' +
+        '<div class="market-change ' + cls + '">' + secondLine + '</div>' +
         '</td>';
     }
 
