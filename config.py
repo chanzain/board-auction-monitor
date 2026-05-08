@@ -16,6 +16,9 @@ FOCUS_BOARDS = []  # 留空表示自动加载全部概念板块
 # 每批次请求间隔（秒），避免触发 Tushare 限流
 REQUEST_INTERVAL = 0.5
 
+# 单次 Web/API 请求最多新拉取多少只股票的日线 MA5（其余写入缓存后下次继续补全）
+MA5_MAX_FILL_PER_REQUEST = 150
+
 # 并发请求数
 MAX_CONCURRENT = 3
 

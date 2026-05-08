@@ -324,6 +324,7 @@ def aggregate_board_amount(
     auction_df: pd.DataFrame,
     board_map: dict,
     focus_boards: list = None,
+    ma5_map: Optional[dict] = None,
 ) -> pd.DataFrame:
     """
     将个股竞价数据按板块汇总
@@ -356,6 +357,31 @@ def aggregate_board_amount(
         stock_count = len(board_auction)
         avg_amount = total_amount / stock_count if stock_count > 0 else 0
 
+        amt_sum = float(pd.to_numeric(board_auction["amount"], errors="coerce").fillna(0).sum())
+        if amt_sum > 0:
+            auction_avg_price = float(
+                (
+                    pd.to_numeric(board_auction["price"], errors="coerce").fillna(0)
+                    * pd.to_numeric(board_auction["amount"], errors="coerce").fillna(0)
+                ).sum()
+                / amt_sum
+            )
+        else:
+            auction_avg_price = float(pd.to_numeric(board_auction["price"], errors="coerce").mean() or 0)
+
+        board_ma5_vals = []
+        if ma5_map:
+            for ts in board_auction["ts_code"].astype(str):
+                mv = ma5_map.get(ts)
+                if mv is not None:
+                    try:
+                        board_ma5_vals.append(float(mv))
+                    except (TypeError, ValueError):
+                        pass
+        board_ma5_price = (
+            float(sum(board_ma5_vals) / len(board_ma5_vals)) if board_ma5_vals else float("nan")
+        )
+
         # 计算板块平均涨幅（基于开盘价 vs 昨收）
         board_auction_valid = board_auction.dropna(subset=["price", "pre_close"])
         if not board_auction_valid.empty and (board_auction_valid["pre_close"] != 0).any():
@@ -380,6 +406,8 @@ def aggregate_board_amount(
             "成交量(股)": total_vol,
             "统计股数": stock_count,
             "平均每只成交额": avg_amount,
+            "竞价均价(元)": auction_avg_price,
+            "五日线均价(元)": board_ma5_price,
             "平均涨幅%": round(avg_change, 2),
             "上涨数": rise_count,
             "下跌数": fall_count,

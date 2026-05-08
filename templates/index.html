@@ -388,7 +388,8 @@
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">前一天收盘价</th>
                   <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">股票</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">竞价成交额</th>
-                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">竞价价格</th>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">最新价</th>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">五日线</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">涨跌幅</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">较前日变化</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">前日涨跌</th>
@@ -396,7 +397,7 @@
                 </tr>
               </thead>
               <tbody id="stockTableBody">
-                <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>
+                <tr><td colspan="10" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>
               </tbody>
             </table>
           </div>
@@ -958,6 +959,8 @@
         '<th style="width:60px">排名</th>' +
         '<th>板块名称</th>' +
         '<th>竞价成交额</th>' +
+        '<th style="white-space:nowrap">最新价(均)</th>' +
+        '<th style="white-space:nowrap">五日线(均)</th>' +
         '<th>较前日变化</th>' +
         '<th style="white-space:nowrap;min-width:100px">7日竞价趋势</th>' +
         '<th>个股均额</th>' +
@@ -992,6 +995,8 @@
             followCell +
           '</td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
+          '<td style="text-align:right;font-size:13px;font-weight:600;">' + (item.latest_price_display || '--') + '</td>' +
+          '<td style="text-align:right;font-size:13px;color:var(--text-secondary);">' + (item.ma5_price_display || '--') + '</td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
           '<td><button type="button" class="btn btn-outline board-trend-btn" onclick="openBoardTrendModal(\'' + nameEsc + '\')">查看趋势</button></td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +
@@ -1832,7 +1837,7 @@
     async function loadStockData(boardName, category) {
       var tbody = document.getElementById('stockTableBody');
       var cardsEl = document.getElementById('stockCardsBody');
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
       if (cardsEl) {
         cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder">加载中...</div>';
         cardsEl.setAttribute('aria-busy', 'true');
@@ -1852,7 +1857,7 @@
           updateFilterCounts();
           renderStockTable(currentStockData);
         } else {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--red);">' + escapeHtml(result.message || '加载失败') + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--red);">' + escapeHtml(result.message || '加载失败') + '</td></tr>';
           if (cardsEl) {
             cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder stock-modal-card--error">' + escapeHtml(result.message || '加载失败') + '</div>';
             cardsEl.removeAttribute('aria-busy');
@@ -1860,7 +1865,7 @@
           }
         }
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--red);">请求失败: ' + escapeHtml(e.message) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--red);">请求失败: ' + escapeHtml(e.message) + '</td></tr>';
         if (cardsEl) {
           cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder stock-modal-card--error">请求失败: ' + escapeHtml(e.message) + '</div>';
           cardsEl.removeAttribute('aria-busy');
@@ -1889,7 +1894,7 @@
       var cardsEl = document.getElementById('stockCardsBody');
 
       if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-secondary);">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--text-secondary);">暂无数据</td></tr>';
         if (cardsEl) {
           cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder">暂无数据</div>';
           cardsEl.removeAttribute('aria-busy');
@@ -1937,11 +1942,19 @@
         var cc = typeof stock.concept_count === 'number' ? stock.concept_count : (stock.concept_names ? stock.concept_names.length : 0);
         var previewLine = escapeHtml(previewShow) + (cc > 0 ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:4px;opacity:0.85;">共 ' + cc + ' 个概念·题材</div>' : '');
 
+        var latestDisp = stock.latest_price_display != null ? stock.latest_price_display : (stock.price != null ? stock.price.toFixed(2) : '--');
+        var ma5Disp = stock.ma5_display != null ? stock.ma5_display : '--';
+        var ma5Cls = 'color:var(--text-secondary);';
+        if (stock.ma5 != null && stock.price != null) {
+          if (stock.price > stock.ma5) ma5Cls = 'color:var(--red);font-weight:600;';
+          else if (stock.price < stock.ma5) ma5Cls = 'color:var(--green);font-weight:600;';
+        }
         html += '<tr style="border-bottom:1px solid var(--border);transition:background 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'none\'">' +
           '<td style="padding:10px 14px;text-align:right;font-size:13px;font-weight:600;color:var(--text-secondary);">' + (stock.pre_close ? stock.pre_close.toFixed(2) : '--') + '</td>' +
           '<td style="padding:10px 14px;">' + stockLabel + '</td>' +
           '<td style="padding:10px 14px;text-align:right;font-size:13px;font-weight:600;">' + stock.amount_display + '</td>' +
-          '<td style="padding:10px 14px;text-align:right;font-size:13px;' + priceCls + ';">' + stock.price.toFixed(2) + '</td>' +
+          '<td style="padding:10px 14px;text-align:right;font-size:13px;' + priceCls + ';">' + latestDisp + '</td>' +
+          '<td style="padding:10px 14px;text-align:right;font-size:13px;' + ma5Cls + '">' + ma5Disp + '</td>' +
           '<td style="padding:10px 14px;text-align:right;">' +
             '<span class="change-badge ' + changeCls + '">' + changeSign + stock.change_pct.toFixed(2) + '%</span>' +
           '</td>' +
@@ -1956,8 +1969,13 @@
         '</tr>';
 
         var preCloseStr = stock.pre_close ? stock.pre_close.toFixed(2) : '--';
-        var priceNumStr = stock.price != null ? stock.price.toFixed(2) : '--';
+        var priceNumStr = stock.latest_price_display != null ? stock.latest_price_display : (stock.price != null ? stock.price.toFixed(2) : '--');
+        var ma5CardStr = stock.ma5_display != null ? stock.ma5_display : '--';
         var priceTone = stock.price > stock.pre_close ? 'stock-modal-num--up' : stock.price < stock.pre_close ? 'stock-modal-num--down' : '';
+        var ma5Tone = '';
+        if (stock.ma5 != null && stock.price != null) {
+          ma5Tone = stock.price > stock.ma5 ? 'stock-modal-num--up' : stock.price < stock.ma5 ? 'stock-modal-num--down' : '';
+        }
         cardsHtml +=
           '<article class="stock-modal-card">' +
             '<div class="stock-modal-card-head">' +
@@ -1969,7 +1987,8 @@
             '</div>' +
             '<div class="stock-modal-card-grid">' +
               '<div class="stock-modal-kv"><span class="stock-modal-k">昨收</span><span class="stock-modal-v">' + preCloseStr + '</span></div>' +
-              '<div class="stock-modal-kv"><span class="stock-modal-k">竞价价</span><span class="stock-modal-v ' + priceTone + '">' + priceNumStr + '</span></div>' +
+              '<div class="stock-modal-kv"><span class="stock-modal-k">最新价</span><span class="stock-modal-v ' + priceTone + '">' + priceNumStr + '</span></div>' +
+              '<div class="stock-modal-kv"><span class="stock-modal-k">五日线</span><span class="stock-modal-v ' + ma5Tone + '">' + ma5CardStr + '</span></div>' +
               '<div class="stock-modal-kv"><span class="stock-modal-k">竞价额</span><span class="stock-modal-v">' + escapeHtml(String(stock.amount_display || '--')) + '</span></div>' +
               '<div class="stock-modal-kv"><span class="stock-modal-k">较前日</span><span class="change-badge ' + amountChangeCls + '">' + escapeHtml(String(amountChange)) + '</span></div>' +
               '<div class="stock-modal-kv stock-modal-kv--full"><span class="stock-modal-k">前日涨跌</span><span class="stock-modal-v">' + (prevChangePlain !== '--' ? '<span class="change-badge ' + prevCls + '">' + escapeHtml(prevChangePlain) + '</span>' : '--') + '</span></div>' +
@@ -2318,6 +2337,8 @@
       var html = '<table><thead><tr>' +
         '<th>板块名称</th>' +
         '<th>竞价成交额</th>' +
+        '<th style="white-space:nowrap">最新价(均)</th>' +
+        '<th style="white-space:nowrap">五日线(均)</th>' +
         '<th>较前日变化</th>' +
         '<th style="white-space:nowrap;min-width:100px">7日竞价趋势</th>' +
         '<th>个股均额</th>' +
@@ -2343,6 +2364,8 @@
         html += '<tr class="focus-row">' +
           '<td><span class="board-name">' + item.name + '</span></td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
+          '<td style="text-align:right;font-size:13px;font-weight:600;">' + (item.latest_price_display || '--') + '</td>' +
+          '<td style="text-align:right;font-size:13px;color:var(--text-secondary);">' + (item.ma5_price_display || '--') + '</td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
           '<td><button type="button" class="btn btn-outline board-trend-btn" onclick="openBoardTrendModal(\'' + nameEsc + '\',\'' + dateStr + '\',\'' + bcat + '\')">查看趋势</button></td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +

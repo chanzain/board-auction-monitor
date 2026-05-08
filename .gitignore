@@ -9,6 +9,7 @@ data/*.csv
 data/*.json.bak
 data/board_trend_cache/
 data/watchlist_data_cache/
+data/ma5_cache/
 .venv/
 venv/
 .idea/

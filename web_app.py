@@ -40,7 +40,7 @@ BOARD_TREND_CACHE_DIR = DATA_DIR / "board_trend_cache"
 BOARD_TREND_CACHE_VERSION = 1
 # 我的关注表格数据缓存（按日期 + 关注列表内容哈希）
 WATCHLIST_DATA_CACHE_DIR = DATA_DIR / "watchlist_data_cache"
-WATCHLIST_DATA_CACHE_VERSION = 1
+WATCHLIST_DATA_CACHE_VERSION = 2
 
 # ========== 股票名称缓存 ==========
 _stock_name_cache = None  # {ts_code: name}
@@ -300,6 +300,24 @@ def compute_market_data(auction_df):
     return result
 
 
+def _board_row_price_display(row, col_name: str) -> str:
+    """板块汇总表中的价格列展示（缺列或非数值为 --）"""
+    import math
+
+    if col_name not in row.index:
+        return "--"
+    v = row[col_name]
+    try:
+        if v is None:
+            return "--"
+        f = float(v)
+        if math.isnan(f) or math.isinf(f):
+            return "--"
+        return f"{f:.2f}"
+    except (TypeError, ValueError):
+        return "--"
+
+
 def build_board_rows(summary_df, prev_date, category: str = None):
     """构建板块数据行；category 用于与上一交易日的分类汇总对齐（日环比）"""
     cat = _normalize_board_category_arg(category) if category else _default_board_category()
@@ -340,6 +358,8 @@ def build_board_rows(summary_df, prev_date, category: str = None):
             "rise": _safe_int(row["上涨数"]),
             "fall": _safe_int(row["下跌数"]),
             "prev_date": prev_date,
+            "latest_price_display": _board_row_price_display(row, "竞价均价(元)"),
+            "ma5_price_display": _board_row_price_display(row, "五日线均价(元)"),
         })
 
     return rows
@@ -371,11 +391,16 @@ def api_fetch():
                 "message": "板块映射为空，请先初始化板块数据",
             })
 
-        summary_df = aggregate_board_amount(auction_df, board_map, FOCUS_BOARDS)
+        from ma5_daily import get_ma5_map_progressive
+
+        actual_date = str(auction_df["trade_date"].iloc[0])
+        ma5_map = get_ma5_map_progressive(
+            auction_df["ts_code"].astype(str).unique().tolist(),
+            actual_date,
+        )
+        summary_df = aggregate_board_amount(auction_df, board_map, FOCUS_BOARDS, ma5_map=ma5_map)
         if summary_df.empty:
             return jsonify({"success": False, "message": "汇总失败"})
-
-        actual_date = auction_df["trade_date"].iloc[0]
 
         from auction_monitor import save_summary
 
@@ -383,14 +408,14 @@ def api_fetch():
         industry_m = load_industry_board_map()
         if concept_m:
             save_summary(
-                aggregate_board_amount(auction_df, concept_m, FOCUS_BOARDS),
+                aggregate_board_amount(auction_df, concept_m, FOCUS_BOARDS, ma5_map=ma5_map),
                 actual_date,
                 source=source,
                 category_suffix="concept",
             )
         if industry_m:
             save_summary(
-                aggregate_board_amount(auction_df, industry_m, FOCUS_BOARDS),
+                aggregate_board_amount(auction_df, industry_m, FOCUS_BOARDS, ma5_map=ma5_map),
                 actual_date,
                 source=source,
                 category_suffix="industry",
@@ -398,7 +423,7 @@ def api_fetch():
         primary_m = load_board_map()
         if primary_m:
             save_summary(
-                aggregate_board_amount(auction_df, primary_m, FOCUS_BOARDS),
+                aggregate_board_amount(auction_df, primary_m, FOCUS_BOARDS, ma5_map=ma5_map),
                 actual_date,
                 source=source,
                 category_suffix=None,
@@ -460,7 +485,13 @@ def api_history(date_str):
     if auction_csv.exists():
         try:
             auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
-            summary_df = aggregate_board_amount(auction_df, board_map, FOCUS_BOARDS)
+            from ma5_daily import get_ma5_map_progressive
+
+            ma5_map = get_ma5_map_progressive(
+                auction_df["ts_code"].astype(str).unique().tolist(),
+                date_str,
+            )
+            summary_df = aggregate_board_amount(auction_df, board_map, FOCUS_BOARDS, ma5_map=ma5_map)
         except Exception:
             summary_df = None
 
@@ -548,6 +579,13 @@ def api_board_stocks(date_str, board_name):
         if board_stocks.empty:
             return jsonify({"success": False, "message": "无个股数据"})
 
+        from ma5_daily import get_ma5_map_progressive
+
+        ma5_map = get_ma5_map_progressive(
+            board_stocks["ts_code"].astype(str).unique().tolist(),
+            date_str,
+        )
+
         # 预加载股票名称映射
         name_map = get_stock_name_map()
 
@@ -610,6 +648,11 @@ def api_board_stocks(date_str, board_name):
                 prev_change_pct = None
 
             concept_names = stock_concept_idx.get(ts_code, [])
+            mv = ma5_map.get(ts_code) if ma5_map else None
+            try:
+                ma5_f = float(mv) if mv is not None else None
+            except (TypeError, ValueError):
+                ma5_f = None
             all_rows.append({
                 "ts_code": ts_code,
                 "name": name_map.get(ts_code, ""),
@@ -622,6 +665,9 @@ def api_board_stocks(date_str, board_name):
                 "pre_close": pre_close,
                 "vol": int(vol) if vol > 0 else 0,
                 "prev_change_pct": round(prev_change_pct, 2) if prev_change_pct is not None else None,
+                "latest_price_display": f"{price:.2f}" if price is not None else "--",
+                "ma5": ma5_f,
+                "ma5_display": f"{ma5_f:.2f}" if ma5_f is not None else "--",
                 "concept_names": concept_names,
                 "concept_count": len(concept_names),
                 "concept_preview": format_concept_preview(concept_names),
@@ -1154,6 +1200,21 @@ def api_watchlist_data():
     prev_date = get_previous_trade_date(date_str)
     rows_out = []
 
+    auction_df_cached = None
+    ma5_map_shared = None
+    if auction_csv.exists():
+        try:
+            auction_df_cached = pd.read_csv(auction_csv, encoding="utf-8-sig")
+            from ma5_daily import get_ma5_map_progressive
+
+            ma5_map_shared = get_ma5_map_progressive(
+                auction_df_cached["ts_code"].astype(str).unique().tolist(),
+                date_str,
+            )
+        except Exception:
+            auction_df_cached = None
+            ma5_map_shared = None
+
     for entry in watchlist:
         name = entry["name"]
         cat = _normalize_board_category_arg(entry.get("category"))
@@ -1161,10 +1222,11 @@ def api_watchlist_data():
         if not board_map or name not in board_map:
             continue
         summary_df = None
-        if auction_csv.exists():
+        if auction_df_cached is not None:
             try:
-                auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
-                summary_df = aggregate_board_amount(auction_df, board_map, FOCUS_BOARDS)
+                summary_df = aggregate_board_amount(
+                    auction_df_cached, board_map, FOCUS_BOARDS, ma5_map=ma5_map_shared
+                )
             except Exception:
                 summary_df = None
         if summary_df is None or summary_df.empty:
