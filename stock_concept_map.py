@@ -16,6 +16,20 @@ def build_stock_concept_index(board_map: Dict[str, List[str]]) -> Dict[str, List
     return {k: sorted(set(v)) for k, v in rev.items()}
 
 
+def build_stock_concept_index_for_codes(
+    board_map: Dict[str, List[str]], codes: set
+) -> Dict[str, List[str]]:
+    """仅为指定 ts_code 构建反查索引（成分股弹窗用，避免全市场索引）。"""
+    if not codes:
+        return {}
+    rev: Dict[str, List[str]] = {}
+    for board_name, stock_codes in board_map.items():
+        for c in stock_codes:
+            if c in codes:
+                rev.setdefault(c, []).append(board_name)
+    return {k: sorted(set(v)) for k, v in rev.items()}
+
+
 def format_concept_preview(names: List[str], max_chars: int = 100) -> str:
     """列表列展示用：顿号连接，超长截断"""
     if not names:

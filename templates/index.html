@@ -22,8 +22,8 @@
       <button type="button" class="nav-tab{% if initial_tab == 'board' %} active{% endif %}" onclick="switchTab('board')">A股板块竞价</button>
       <button type="button" class="nav-tab{% if initial_tab == 'market' %} active{% endif %}" onclick="switchTab('market')">大盘数据对比</button>
       <button type="button" class="nav-tab{% if initial_tab == 'watchlist' %} active{% endif %}" onclick="switchTab('watchlist')">我的关注</button>
-      <button type="button" class="nav-tab{% if initial_tab == 'usSector' %} active{% endif %}" onclick="switchTab('usSector')">美股板块</button>
-      <button type="button" class="nav-tab{% if initial_tab == 'hkSector' %} active{% endif %}" onclick="switchTab('hkSector')">港股竞价</button>
+      <!-- <button type="button" class="nav-tab{% if initial_tab == 'usSector' %} active{% endif %}" onclick="switchTab('usSector')">美股板块</button>
+      <button type="button" class="nav-tab{% if initial_tab == 'hkSector' %} active{% endif %}" onclick="switchTab('hkSector')">港股竞价</button> -->
     </div>
     <div class="time-info" id="currentTime"></div>
   </div>
@@ -38,8 +38,8 @@
       <button type="button" class="mobile-nav-item{% if initial_tab == 'board' %} active{% endif %}" data-tab="board">A股板块竞价</button>
       <button type="button" class="mobile-nav-item{% if initial_tab == 'market' %} active{% endif %}" data-tab="market">大盘数据对比</button>
       <button type="button" class="mobile-nav-item{% if initial_tab == 'watchlist' %} active{% endif %}" data-tab="watchlist">我的关注</button>
-      <button type="button" class="mobile-nav-item{% if initial_tab == 'usSector' %} active{% endif %}" data-tab="usSector">美股板块</button>
-      <button type="button" class="mobile-nav-item{% if initial_tab == 'hkSector' %} active{% endif %}" data-tab="hkSector">港股竞价</button>
+      <!-- <button type="button" class="mobile-nav-item{% if initial_tab == 'usSector' %} active{% endif %}" data-tab="usSector">美股板块</button>
+      <button type="button" class="mobile-nav-item{% if initial_tab == 'hkSector' %} active{% endif %}" data-tab="hkSector">港股竞价</button> -->
     </nav>
   </aside>
 
@@ -388,10 +388,10 @@
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">前一天收盘价</th>
                   <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">股票</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">竞价成交额</th>
+                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">较前日变化</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">最新价</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">五日线</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">涨跌幅</th>
-                  <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">较前日变化</th>
                   <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);">前日涨跌</th>
                   <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;background:var(--card);min-width:220px;">所属概念·题材</th>
                 </tr>
@@ -490,6 +490,8 @@
     var currentModalBoardCategory = 'concept';
     var watchlistCurrentDate = '';  // 我的关注：当前查看的日期
     var myWatchlist = [];           // 关注列表（板块列表「关注」按钮与关注页共用）
+    var watchlistDataCache = {};    // dateStr -> API 结果，切换日期/Tab 时先秒开
+    var watchlistLoadSeq = 0;       // 丢弃过期的异步响应
 
     /* ===== 前端路由（与 Flask 页面路径一致，用于 pushState / 刷新直达）===== */
     var TAB_PATHS = { board: '/', market: '/market', watchlist: '/watchlist', usSector: '/us-sector', hkSector: '/hk-sector' };
@@ -959,10 +961,10 @@
         '<th style="width:60px">排名</th>' +
         '<th>板块名称</th>' +
         '<th>竞价成交额</th>' +
-        '<th style="white-space:nowrap">最新价(均)</th>' +
-        '<th style="white-space:nowrap">五日线(均)</th>' +
         '<th>较前日变化</th>' +
         '<th style="white-space:nowrap;min-width:100px">7日竞价趋势</th>' +
+        '<th style="white-space:nowrap">最新价(均)</th>' +
+        '<th style="white-space:nowrap">五日线(均)</th>' +
         '<th>个股均额</th>' +
         '<th>统计股数</th>' +
         '<th>平均涨幅</th>' +
@@ -995,10 +997,10 @@
             followCell +
           '</td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
-          '<td style="text-align:right;font-size:13px;font-weight:600;">' + (item.latest_price_display || '--') + '</td>' +
-          '<td style="text-align:right;font-size:13px;color:var(--text-secondary);">' + (item.ma5_price_display || '--') + '</td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
           '<td><button type="button" class="btn btn-outline board-trend-btn" onclick="openBoardTrendModal(\'' + nameEsc + '\')">查看趋势</button></td>' +
+          '<td style="text-align:right;font-size:13px;font-weight:600;">' + (item.latest_price_display || '--') + '</td>' +
+          '<td style="text-align:right;font-size:13px;color:var(--text-secondary);">' + (item.ma5_price_display || '--') + '</td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +
           '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\',\'' + boardCategory + '\')">' + item.stock_count + '只 📋</td>' +
           '<td><span class="change-badge ' + changeCls + '">' + sign + changePct.toFixed(2) + '%</span></td>' +
@@ -1132,7 +1134,11 @@
       }
       var sourceInfo = result.source ? ' | 数据源: ' + result.source : '';
       var catNote = (boardMapsMeta.concept && boardMapsMeta.industry) ? (' | ' + boardCategoryLabel()) : '';
-      document.getElementById('tableSubtitle').textContent = '数据日期: ' + date + sourceInfo + catNote + ' | 共 ' + total_boards + ' 个板块 | 按较前日变化降序';
+      var subBoard = '数据日期: ' + date + sourceInfo + catNote + ' | 共 ' + total_boards + ' 个板块 | 按较前日变化降序';
+      if (result.from_cache && result.cached_at) {
+        subBoard += ' · 已使用本地缓存（' + result.cached_at + '）';
+      }
+      document.getElementById('tableSubtitle').textContent = subBoard;
 
       if (!data || data.length === 0) {
         document.getElementById('tableContent').innerHTML = '<div style="text-align: center; padding: 48px 24px; color: var(--text-secondary);"><p>暂无数据</p></div>';
@@ -1225,15 +1231,22 @@
         usSectorSection.style.display = 'none';
         if (hkSectorSection) hkSectorSection.style.display = 'none';
         tabs[2].classList.add('active');
-        // 加载关注列表和数据
-        loadWatchlist();
-        // 默认使用当前日期（或最新历史日期）
         if (!watchlistCurrentDate && historyDates.length > 0) {
           watchlistCurrentDate = historyDates[0];
         }
         updateWatchlistDateDisplay();
-        if (watchlistCurrentDate) {
-          loadWatchlistData(watchlistCurrentDate);
+        if (myWatchlist && myWatchlist.length > 0) {
+          renderWatchlistTags();
+          updateWatchlistCount();
+          if (watchlistCurrentDate) {
+            loadWatchlistData(watchlistCurrentDate);
+          }
+        } else {
+          loadWatchlist().then(function() {
+            if (watchlistCurrentDate) {
+              loadWatchlistData(watchlistCurrentDate);
+            }
+          });
         }
       } else if (tab === 'usSector') {
         boardSection.style.display = 'none';
@@ -1501,12 +1514,25 @@
                 afterLabel: function(ctx) {
                   var idx = ctx.dataIndex;
                   var d = chartData[idx];
+                  var lines = [];
+                  if (idx > 0 && d && d['全A']) {
+                    var prev = chartData[idx - 1];
+                    var currAmt = d['全A'].auction_amount;
+                    var prevAmt = prev && prev['全A'] ? prev['全A'].auction_amount : null;
+                    if (currAmt != null && prevAmt != null) {
+                      var deltaYi = (Number(currAmt) - Number(prevAmt)) / 1e8;
+                      if (!Number.isNaN(deltaYi)) {
+                        var dSign = deltaYi > 0 ? '+' : '';
+                        lines.push('较上一交易日: ' + dSign + deltaYi.toFixed(2) + ' 亿');
+                      }
+                    }
+                  }
                   if (d && d['全A']) {
                     var pct = d['全A'].avg_change_pct;
                     var sign = pct > 0 ? '+' : '';
-                    return '平均涨跌: ' + sign + pct.toFixed(2) + '% | ' + d['全A'].stock_count + '只';
+                    lines.push('平均涨跌: ' + sign + pct.toFixed(2) + '% | ' + d['全A'].stock_count + '只');
                   }
-                  return '';
+                  return lines.length ? lines : '';
                 }
               }
             }
@@ -1736,6 +1762,10 @@
     var currentStockData = null;  // 存储当前加载的股票数据
     var currentTypeFilter = 'all';
     var currentModalBoardNameForConcept = '';
+    var currentModalBoardKey = '';   // 当前弹窗 date|category|board，避免异步串台
+    var stockDataCache = {};         // 成分股列表内存缓存
+    var stockLoadSeq = 0;
+    var stockMa5LoadSeq = 0;
 
     async function openConceptDetailModal(tsCode) {
       if (!tsCode) return;
@@ -1807,6 +1837,7 @@
       }
 
       currentModalBoardCategory = category || boardCategory || 'concept';
+      currentModalBoardKey = currentDate + '|' + currentModalBoardCategory + '|' + boardName;
 
       // 设置弹窗标题
       document.getElementById('modalTitle').textContent = boardName + ' - 成分股竞价详情';
@@ -1832,31 +1863,84 @@
       document.getElementById('stockModal').style.display = 'none';
       currentStockData = null;
       currentModalBoardNameForConcept = '';
+      currentModalBoardKey = '';
+    }
+
+    function getFilteredStockData() {
+      if (!currentStockData) return [];
+      var filtered = currentStockData;
+      if (currentTypeFilter === 'up') {
+        filtered = currentStockData.filter(function(s) { return s.change_pct > 0; });
+      } else if (currentTypeFilter === 'down') {
+        filtered = currentStockData.filter(function(s) { return s.change_pct < 0; });
+      } else if (currentTypeFilter === 'flat') {
+        filtered = currentStockData.filter(function(s) { return s.change_pct === 0; });
+      }
+      var keyword = document.getElementById('stockSearchInput').value.trim().toLowerCase();
+      if (keyword) {
+        filtered = filtered.filter(function(s) {
+          return (s.name && s.name.toLowerCase().indexOf(keyword) >= 0) ||
+            (s.ts_code && s.ts_code.toLowerCase().indexOf(keyword) >= 0);
+        });
+      }
+      return filtered;
+    }
+
+    function applyStockDataResult(result, boardName) {
+      if (result.board_category) currentModalBoardCategory = result.board_category;
+      currentModalBoardNameForConcept = result.board_name || boardName;
+      currentStockData = result.data || [];
+      updateFilterCounts();
+      renderStockTable(getFilteredStockData());
+    }
+
+    function fetchBoardStocksMa5InBackground(boardName, category, cacheKey, modalKey) {
+      var ma5Seq = ++stockMa5LoadSeq;
+      var cat = category || boardCategory || 'concept';
+      var baseUrl = '/api/board_stocks/' + currentDate + '/' + encodeURIComponent(boardName) +
+        '?category=' + encodeURIComponent(cat) + '&ma5_fill=80';
+      fetch(baseUrl).then(function(resp) { return resp.json(); }).then(function(result) {
+        if (ma5Seq !== stockMa5LoadSeq) return;
+        if (modalKey !== currentModalBoardKey) return;
+        if (!result.success || !result.data) return;
+        stockDataCache[cacheKey] = result;
+        applyStockDataResult(result, boardName);
+      }).catch(function() {});
     }
 
     async function loadStockData(boardName, category) {
       var tbody = document.getElementById('stockTableBody');
       var cardsEl = document.getElementById('stockCardsBody');
-      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
-      if (cardsEl) {
-        cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder">加载中...</div>';
-        cardsEl.setAttribute('aria-busy', 'true');
-        syncStockModalLayout();
+      var cat = category || boardCategory || 'concept';
+      var cacheKey = currentDate + '|' + cat + '|' + boardName;
+      var modalKey = cacheKey;
+      var memCached = stockDataCache[cacheKey];
+
+      if (memCached && memCached.success) {
+        applyStockDataResult(memCached, boardName);
+        fetchBoardStocksMa5InBackground(boardName, cat, cacheKey, modalKey);
+      } else {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</td></tr>';
+        if (cardsEl) {
+          cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder">加载中...</div>';
+          cardsEl.setAttribute('aria-busy', 'true');
+          syncStockModalLayout();
+        }
       }
 
+      var seq = ++stockLoadSeq;
       try {
-        var cat = category || boardCategory || 'concept';
-        var url = '/api/board_stocks/' + currentDate + '/' + encodeURIComponent(boardName) + '?category=' + encodeURIComponent(cat);
+        var url = '/api/board_stocks/' + currentDate + '/' + encodeURIComponent(boardName) +
+          '?category=' + encodeURIComponent(cat) + '&ma5_fill=0';
         var resp = await fetch(url);
+        if (seq !== stockLoadSeq || modalKey !== currentModalBoardKey) return;
         var result = await resp.json();
 
         if (result.success) {
-          if (result.board_category) currentModalBoardCategory = result.board_category;
-          currentModalBoardNameForConcept = result.board_name || boardName;
-          currentStockData = result.data || [];
-          updateFilterCounts();
-          renderStockTable(currentStockData);
-        } else {
+          stockDataCache[cacheKey] = result;
+          applyStockDataResult(result, boardName);
+          fetchBoardStocksMa5InBackground(boardName, cat, cacheKey, modalKey);
+        } else if (!memCached) {
           tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--red);">' + escapeHtml(result.message || '加载失败') + '</td></tr>';
           if (cardsEl) {
             cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder stock-modal-card--error">' + escapeHtml(result.message || '加载失败') + '</div>';
@@ -1865,11 +1949,14 @@
           }
         }
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--red);">请求失败: ' + escapeHtml(e.message) + '</td></tr>';
-        if (cardsEl) {
-          cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder stock-modal-card--error">请求失败: ' + escapeHtml(e.message) + '</div>';
-          cardsEl.removeAttribute('aria-busy');
-          syncStockModalLayout();
+        if (seq !== stockLoadSeq || modalKey !== currentModalBoardKey) return;
+        if (!memCached) {
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:48px;color:var(--red);">请求失败: ' + escapeHtml(e.message) + '</td></tr>';
+          if (cardsEl) {
+            cardsEl.innerHTML = '<div class="stock-modal-card stock-modal-card--placeholder stock-modal-card--error">请求失败: ' + escapeHtml(e.message) + '</div>';
+            cardsEl.removeAttribute('aria-busy');
+            syncStockModalLayout();
+          }
         }
       }
     }
@@ -1953,13 +2040,13 @@
           '<td style="padding:10px 14px;text-align:right;font-size:13px;font-weight:600;color:var(--text-secondary);">' + (stock.pre_close ? stock.pre_close.toFixed(2) : '--') + '</td>' +
           '<td style="padding:10px 14px;">' + stockLabel + '</td>' +
           '<td style="padding:10px 14px;text-align:right;font-size:13px;font-weight:600;">' + stock.amount_display + '</td>' +
+          '<td style="padding:10px 14px;text-align:right;">' +
+            '<span class="change-badge ' + amountChangeCls + '">' + amountChange + '</span>' +
+          '</td>' +
           '<td style="padding:10px 14px;text-align:right;font-size:13px;' + priceCls + ';">' + latestDisp + '</td>' +
           '<td style="padding:10px 14px;text-align:right;font-size:13px;' + ma5Cls + '">' + ma5Disp + '</td>' +
           '<td style="padding:10px 14px;text-align:right;">' +
             '<span class="change-badge ' + changeCls + '">' + changeSign + stock.change_pct.toFixed(2) + '%</span>' +
-          '</td>' +
-          '<td style="padding:10px 14px;text-align:right;">' +
-            '<span class="change-badge ' + amountChangeCls + '">' + amountChange + '</span>' +
           '</td>' +
           '<td style="padding:10px 14px;text-align:right;">' + prevChangeHtml + '</td>' +
           '<td style="padding:10px 14px;font-size:12px;vertical-align:top;max-width:300px;">' +
@@ -1987,10 +2074,10 @@
             '</div>' +
             '<div class="stock-modal-card-grid">' +
               '<div class="stock-modal-kv"><span class="stock-modal-k">昨收</span><span class="stock-modal-v">' + preCloseStr + '</span></div>' +
-              '<div class="stock-modal-kv"><span class="stock-modal-k">最新价</span><span class="stock-modal-v ' + priceTone + '">' + priceNumStr + '</span></div>' +
-              '<div class="stock-modal-kv"><span class="stock-modal-k">五日线</span><span class="stock-modal-v ' + ma5Tone + '">' + ma5CardStr + '</span></div>' +
               '<div class="stock-modal-kv"><span class="stock-modal-k">竞价额</span><span class="stock-modal-v">' + escapeHtml(String(stock.amount_display || '--')) + '</span></div>' +
               '<div class="stock-modal-kv"><span class="stock-modal-k">较前日</span><span class="change-badge ' + amountChangeCls + '">' + escapeHtml(String(amountChange)) + '</span></div>' +
+              '<div class="stock-modal-kv"><span class="stock-modal-k">最新价</span><span class="stock-modal-v ' + priceTone + '">' + priceNumStr + '</span></div>' +
+              '<div class="stock-modal-kv"><span class="stock-modal-k">五日线</span><span class="stock-modal-v ' + ma5Tone + '">' + ma5CardStr + '</span></div>' +
               '<div class="stock-modal-kv stock-modal-kv--full"><span class="stock-modal-k">前日涨跌</span><span class="stock-modal-v">' + (prevChangePlain !== '--' ? '<span class="change-badge ' + prevCls + '">' + escapeHtml(prevChangePlain) + '</span>' : '--') + '</span></div>' +
             '</div>' +
             '<div class="stock-modal-card-concept">' + previewLine + '</div>' +
@@ -2008,33 +2095,11 @@
 
     function filterStocks(filter, btn) {
       currentTypeFilter = filter;
-      // 更新按钮状态
       var btns = document.querySelectorAll('#stockModal .market-date-btn');
       btns.forEach(function(b) { b.classList.remove('active'); });
       if (btn) btn.classList.add('active');
-
       if (!currentStockData) return;
-
-      var filtered = currentStockData;
-      if (filter === 'up') {
-        filtered = currentStockData.filter(function(s) { return s.change_pct > 0; });
-      } else if (filter === 'down') {
-        filtered = currentStockData.filter(function(s) { return s.change_pct < 0; });
-      } else if (filter === 'flat') {
-        filtered = currentStockData.filter(function(s) { return s.change_pct === 0; });
-      }
-
-      // 同时应用名称搜索
-      var keyword = document.getElementById('stockSearchInput').value.trim().toLowerCase();
-      if (keyword) {
-        filtered = filtered.filter(function(s) {
-          var name = (s.name || '').toLowerCase();
-          var code = (s.ts_code || '').toLowerCase();
-          return name.indexOf(keyword) !== -1 || code.indexOf(keyword) !== -1;
-        });
-      }
-
-      filtered = filtered.slice().sort(function(a, b) { return (b.change_pct || 0) - (a.change_pct || 0); });
+      var filtered = getFilteredStockData();
       renderStockTable(filtered);
       document.getElementById('modalStats').textContent = '显示 ' + filtered.length + ' 只（按涨跌幅排序）';
     }
@@ -2130,6 +2195,7 @@
         var result = await resp.json();
         if (result.success) {
           myWatchlist = result.watchlist || [];
+          watchlistDataCache = {};
           renderWatchlistTags();
           updateWatchlistCount();
           input.value = '';
@@ -2157,6 +2223,7 @@
         var result = await resp.json();
         if (result.success) {
           myWatchlist = result.watchlist || [];
+          watchlistDataCache = {};
           renderWatchlistTags();
           updateWatchlistCount();
           showMessage('success', result.message);
@@ -2279,7 +2346,8 @@
     }
 
     /* ===== 加载关注板块数据 ===== */
-    async function loadWatchlistData(dateStr) {
+    async function loadWatchlistData(dateStr, opts) {
+      opts = opts || {};
       if (!myWatchlist || myWatchlist.length === 0) {
         document.getElementById('watchlistTableContent').innerHTML =
           '<div style="text-align:center;padding:48px;color:var(--text-secondary);"><div style="font-size:48px;margin-bottom:16px;">⭐</div><p style="font-size:15px;">还没有关注任何板块</p><p style="font-size:13px;margin-top:8px;">在上方搜索框输入板块名称添加关注</p></div>';
@@ -2287,27 +2355,41 @@
       }
 
       var container = document.getElementById('watchlistTableContent');
-      container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</div>';
+      var memCached = !opts.forceRefresh && watchlistDataCache[dateStr];
+      if (memCached) {
+        renderWatchlistTable(memCached);
+      } else {
+        container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text-secondary);">加载中...</div>';
+      }
 
+      var seq = ++watchlistLoadSeq;
       try {
-        var resp = await fetch('/api/watchlist/data?date=' + dateStr);
+        var url = '/api/watchlist/data?date=' + encodeURIComponent(dateStr);
+        if (opts.forceRefresh) url += '&refresh=1';
+        var resp = await fetch(url);
+        if (seq !== watchlistLoadSeq) return;
         var result = await resp.json();
 
         if (result.success) {
+          watchlistDataCache[dateStr] = result;
           renderWatchlistTable(result);
-        } else {
-          container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);">' + (result.message || '加载失败') + '</div>';
+        } else if (!memCached) {
+          container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);">' + escapeHtml(result.message || '加载失败') + '</div>';
           showMessage('error', result.message);
         }
       } catch (e) {
-        container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);">请求失败</div>';
-        showMessage('error', '请求失败: ' + e.message);
+        if (seq !== watchlistLoadSeq) return;
+        if (!memCached) {
+          container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);">请求失败</div>';
+          showMessage('error', '请求失败: ' + e.message);
+        }
       }
     }
 
     function refreshWatchlistData() {
       if (watchlistCurrentDate) {
-        loadWatchlistData(watchlistCurrentDate);
+        delete watchlistDataCache[watchlistCurrentDate];
+        loadWatchlistData(watchlistCurrentDate, { forceRefresh: true });
       } else {
         loadWatchlist();
       }
@@ -2337,10 +2419,10 @@
       var html = '<table><thead><tr>' +
         '<th>板块名称</th>' +
         '<th>竞价成交额</th>' +
-        '<th style="white-space:nowrap">最新价(均)</th>' +
-        '<th style="white-space:nowrap">五日线(均)</th>' +
         '<th>较前日变化</th>' +
         '<th style="white-space:nowrap;min-width:100px">7日竞价趋势</th>' +
+        '<th style="white-space:nowrap">最新价(均)</th>' +
+        '<th style="white-space:nowrap">五日线(均)</th>' +
         '<th>个股均额</th>' +
         '<th>统计股数</th>' +
         '<th>平均涨幅</th>' +
@@ -2364,10 +2446,10 @@
         html += '<tr class="focus-row">' +
           '<td><span class="board-name">' + item.name + '</span></td>' +
           '<td><div class="amount-val">' + item.amount_display + '</div><div class="amount-bar"><div class="amount-bar-fill bar-' + (changePct >= 0 ? 'up' : 'down') + '" style="width:' + barWidth + '%"></div></div></td>' +
-          '<td style="text-align:right;font-size:13px;font-weight:600;">' + (item.latest_price_display || '--') + '</td>' +
-          '<td style="text-align:right;font-size:13px;color:var(--text-secondary);">' + (item.ma5_price_display || '--') + '</td>' +
           '<td><span class="change-badge ' + changeCls2 + '">' + changeDisplay + '</span>' + (item.prev_date ? '<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">vs ' + item.prev_date + '</div>' : '') + '</td>' +
           '<td><button type="button" class="btn btn-outline board-trend-btn" onclick="openBoardTrendModal(\'' + nameEsc + '\',\'' + dateStr + '\',\'' + bcat + '\')">查看趋势</button></td>' +
+          '<td style="text-align:right;font-size:13px;font-weight:600;">' + (item.latest_price_display || '--') + '</td>' +
+          '<td style="text-align:right;font-size:13px;color:var(--text-secondary);">' + (item.ma5_price_display || '--') + '</td>' +
           '<td style="color:var(--text-secondary)">' + item.avg_amount + '</td>' +
           '<td style="cursor:pointer;color:var(--purple);font-weight:600;" onclick="openStockModal(\'' + item.name.replace(/'/g, "\\'") + '\',\'' + bcat + '\')">' + item.stock_count + '只</td>' +
           '<td><span class="change-badge ' + changeCls + '">' + sign + changePct.toFixed(2) + '%</span></td>' +

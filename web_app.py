@@ -19,7 +19,11 @@ from board_data import (
     board_maps_available,
 )
 from board_concept_intro import get_board_concept_intro
-from stock_concept_map import build_stock_concept_index, format_concept_preview
+from stock_concept_map import (
+    build_stock_concept_index,
+    build_stock_concept_index_for_codes,
+    format_concept_preview,
+)
 from auction_monitor import (
     fetch_auction_data,
     aggregate_board_amount,
@@ -40,7 +44,13 @@ BOARD_TREND_CACHE_DIR = DATA_DIR / "board_trend_cache"
 BOARD_TREND_CACHE_VERSION = 1
 # 我的关注表格数据缓存（按日期 + 关注列表内容哈希）
 WATCHLIST_DATA_CACHE_DIR = DATA_DIR / "watchlist_data_cache"
-WATCHLIST_DATA_CACHE_VERSION = 2
+WATCHLIST_DATA_CACHE_VERSION = 3
+# 板块竞价列表页 /api/history 与采集成功后的列表 JSON（按日期+分类+筛选+分页）
+BOARD_HISTORY_CACHE_DIR = DATA_DIR / "board_history_cache"
+BOARD_HISTORY_CACHE_VERSION = 1
+# 板块成分股弹窗 /api/board_stocks 响应缓存
+BOARD_STOCKS_CACHE_DIR = DATA_DIR / "board_stocks_cache"
+BOARD_STOCKS_CACHE_VERSION = 1
 
 # ========== 股票名称缓存 ==========
 _stock_name_cache = None  # {ts_code: name}
@@ -162,9 +172,16 @@ def index_hk_sector():
     return _render_index("hkSector")
 
 
+_prev_trade_date_cache: dict = {}
+
+
 def get_previous_trade_date(date_str):
     """上一交易日（按交易所日历，非自然日「昨天」、非「本地最近有文件的日期」）"""
-    return get_previous_trade_day(date_str)
+    if date_str in _prev_trade_date_cache:
+        return _prev_trade_date_cache[date_str]
+    prev = get_previous_trade_day(date_str)
+    _prev_trade_date_cache[date_str] = prev
+    return prev
 
 
 def _default_board_category() -> str:
@@ -298,6 +315,74 @@ def compute_market_data(auction_df):
     result["创业板"] = _compute_market_stats(cyb_df)
 
     return result
+
+
+def _board_history_source_mtime(date_str: str, category: str) -> float:
+    """列表依赖的本地文件变更时间（任一更新则缓存失效）。含当日 MA5 缓存，便于渐进补全后重算板块五日线。"""
+    mt = 0.0
+    auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
+    if auction_csv.exists():
+        mt = max(mt, auction_csv.stat().st_mtime)
+    sp = _summary_csv_path_for_category(date_str, category)
+    if sp and sp.exists():
+        mt = max(mt, sp.stat().st_mtime)
+    ma5p = DATA_DIR / "ma5_cache" / f"{date_str}.json"
+    if ma5p.exists():
+        mt = max(mt, ma5p.stat().st_mtime)
+    return mt
+
+
+def _board_history_cache_key_hex(
+    date_str: str, category: str, board_name: str, page: int, page_size: int
+) -> str:
+    key = [BOARD_HISTORY_CACHE_VERSION, date_str, category, board_name or "", page, page_size]
+    raw = json.dumps(key, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _try_load_board_history_cache(
+    date_str: str, category: str, board_name: str, page: int, page_size: int,
+):
+    path = BOARD_HISTORY_CACHE_DIR / f"{_board_history_cache_key_hex(date_str, category, board_name, page, page_size)}.json"
+    if not path.is_file():
+        return None
+    try:
+        blob = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if blob.get("version") != BOARD_HISTORY_CACHE_VERSION:
+        return None
+    if blob.get("date_str") != date_str or blob.get("category") != category:
+        return None
+    if blob.get("board_name") != (board_name or "") or int(blob.get("page", -1)) != page or int(blob.get("page_size", -1)) != page_size:
+        return None
+    want_mt = _board_history_source_mtime(date_str, category)
+    if abs(float(blob.get("source_mtime", 0)) - want_mt) > 1e-6:
+        return None
+    payload = blob.get("payload")
+    if not isinstance(payload, dict) or not payload.get("success"):
+        return None
+    return blob
+
+
+def _save_board_history_cache(
+    date_str: str, category: str, board_name: str, page: int, page_size: int, payload: dict,
+) -> None:
+    BOARD_HISTORY_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    path = BOARD_HISTORY_CACHE_DIR / f"{_board_history_cache_key_hex(date_str, category, board_name, page, page_size)}.json"
+    clean = {k: v for k, v in payload.items() if k not in ("from_cache", "cached_at")}
+    blob = {
+        "version": BOARD_HISTORY_CACHE_VERSION,
+        "date_str": date_str,
+        "category": category,
+        "board_name": board_name or "",
+        "page": page,
+        "page_size": page_size,
+        "source_mtime": _board_history_source_mtime(date_str, category),
+        "cached_at": datetime.now().isoformat(timespec="seconds"),
+        "payload": clean,
+    }
+    path.write_text(json.dumps(blob, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _board_row_price_display(row, col_name: str) -> str:
@@ -444,7 +529,7 @@ def api_fetch():
 
         rows = build_board_rows(paged_df, prev_date, category)
 
-        return jsonify({
+        payload = {
             "success": True,
             "date": actual_date,
             "prev_date": prev_date,
@@ -459,7 +544,11 @@ def api_fetch():
             "page_size": page_size,
             "total_pages": (total + page_size - 1) // page_size,
             "data": rows,
-        })
+        }
+        _save_board_history_cache(actual_date, category, board_name, page, page_size, payload)
+        out = dict(payload)
+        out["from_cache"] = False
+        return jsonify(out)
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
@@ -478,6 +567,15 @@ def api_history(date_str):
     board_name = request.args.get("board_name", "")
     page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 9999))
+    refresh = str(request.args.get("refresh", "")).strip().lower() in ("1", "true", "yes")
+
+    if not refresh:
+        hit = _try_load_board_history_cache(date_str, category, board_name, page, page_size)
+        if hit is not None:
+            out = dict(hit["payload"])
+            out["from_cache"] = True
+            out["cached_at"] = hit.get("cached_at")
+            return jsonify(out)
 
     auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
     summary_df = None
@@ -530,7 +628,7 @@ def api_history(date_str):
         source_vals = summary_df["data_source"].dropna().unique()
         data_source = source_vals[0] if len(source_vals) > 0 else ""
 
-    return jsonify({
+    payload = {
         "success": True,
         "date": date_str,
         "board_category": category,
@@ -545,138 +643,264 @@ def api_history(date_str):
         "page_size": page_size,
         "total_pages": (total + page_size - 1) // page_size,
         "data": rows,
-    })
+    }
+    _save_board_history_cache(date_str, category, board_name, page, page_size, payload)
+    out = dict(payload)
+    out["from_cache"] = False
+    return jsonify(out)
+
+
+def _board_stocks_cache_key_hex(date_str: str, category: str, board_name: str) -> str:
+    raw = json.dumps(
+        [BOARD_STOCKS_CACHE_VERSION, date_str, category, board_name],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _board_stocks_source_mtime(date_str: str) -> float:
+    mt = 0.0
+    auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
+    if auction_csv.exists():
+        mt = max(mt, auction_csv.stat().st_mtime)
+    ma5p = DATA_DIR / "ma5_cache" / f"{date_str}.json"
+    if ma5p.exists():
+        mt = max(mt, ma5p.stat().st_mtime)
+    return mt
+
+
+def _try_load_board_stocks_cache(date_str: str, category: str, board_name: str):
+    path = BOARD_STOCKS_CACHE_DIR / f"{_board_stocks_cache_key_hex(date_str, category, board_name)}.json"
+    if not path.is_file():
+        return None
+    try:
+        blob = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if blob.get("version") != BOARD_STOCKS_CACHE_VERSION:
+        return None
+    if blob.get("date_str") != date_str or blob.get("category") != category:
+        return None
+    if blob.get("board_name") != board_name:
+        return None
+    if blob.get("source_mtime") != _board_stocks_source_mtime(date_str):
+        return None
+    payload = blob.get("payload")
+    if not isinstance(payload, dict):
+        return None
+    return blob
+
+
+def _save_board_stocks_cache(date_str: str, category: str, board_name: str, payload: dict) -> None:
+    BOARD_STOCKS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    path = BOARD_STOCKS_CACHE_DIR / f"{_board_stocks_cache_key_hex(date_str, category, board_name)}.json"
+    blob = {
+        "version": BOARD_STOCKS_CACHE_VERSION,
+        "date_str": date_str,
+        "category": category,
+        "board_name": board_name,
+        "source_mtime": _board_stocks_source_mtime(date_str),
+        "cached_at": datetime.now().isoformat(timespec="seconds"),
+        "payload": payload,
+    }
+    path.write_text(json.dumps(blob, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _resolve_board_stocks_ma5_fill() -> int:
+    """ma5_fill 查询参数；默认仅读缓存（0），不阻塞列表。"""
+    from config import MA5_BOARD_STOCKS_DEFAULT_FILL, MA5_BOARD_STOCKS_MAX_FILL
+
+    raw = request.args.get("ma5_fill")
+    if raw is None or str(raw).strip() == "":
+        return int(MA5_BOARD_STOCKS_DEFAULT_FILL or 0)
+    try:
+        n = int(raw)
+    except (TypeError, ValueError):
+        return int(MA5_BOARD_STOCKS_DEFAULT_FILL or 0)
+    if n < 0:
+        return 0
+    cap = MA5_BOARD_STOCKS_MAX_FILL
+    if cap is not None:
+        try:
+            return min(n, int(cap))
+        except (TypeError, ValueError):
+            pass
+    return n
+
+
+def _build_board_stock_rows(
+    board_stocks,
+    date_str: str,
+    ma5_fill: int,
+    name_map: dict,
+    stock_concept_idx: dict,
+) -> list:
+    import pandas as pd
+
+    from ma5_daily import get_ma5_map_progressive
+
+    codes_for_ma5 = board_stocks["ts_code"].astype(str).unique().tolist()
+    ma5_map = get_ma5_map_progressive(codes_for_ma5, date_str, max_fill=ma5_fill)
+
+    code_set = set(codes_for_ma5)
+    prev_date = get_previous_trade_date(date_str)
+    prev_stock_data = {}
+    if prev_date:
+        prev_auction_csv = AUCTION_DIR / f"auction_{prev_date}.csv"
+        if prev_auction_csv.exists():
+            try:
+                prev_df = pd.read_csv(prev_auction_csv, encoding="utf-8-sig")
+                prev_df = prev_df[prev_df["ts_code"].astype(str).isin(code_set)]
+                for _, row in prev_df.iterrows():
+                    ts = str(row["ts_code"])
+                    prev_stock_data[ts] = {
+                        "amount": _safe_float(row["amount"]),
+                        "price": _safe_float(row["price"]),
+                        "pre_close": _safe_float(row["pre_close"]),
+                    }
+            except Exception:
+                prev_stock_data = {}
+
+    all_rows = []
+    for _, row in board_stocks.iterrows():
+        ts_code = str(row["ts_code"])
+        amount = _safe_float(row["amount"])
+        price = _safe_float(row["price"])
+        pre_close = _safe_float(row["pre_close"])
+        vol = _safe_float(row.get("vol", 0))
+
+        if pre_close != 0:
+            change_pct = (price - pre_close) / pre_close * 100
+            change_price = price - pre_close
+        else:
+            change_pct = 0
+            change_price = 0
+
+        prev_info = prev_stock_data.get(ts_code)
+        if prev_info:
+            amount_change = amount - prev_info["amount"]
+            amount_change_display = format_amount(abs(amount_change))
+            if amount_change > 0:
+                amount_change_display = f"+{amount_change_display}"
+            elif amount_change < 0:
+                amount_change_display = f"-{amount_change_display}"
+            else:
+                amount_change_display = "0"
+            prev_pre_close = prev_info["pre_close"]
+            prev_price = prev_info["price"]
+            if prev_pre_close != 0:
+                prev_change_pct = (prev_price - prev_pre_close) / prev_pre_close * 100
+            else:
+                prev_change_pct = 0
+        else:
+            amount_change_display = "--"
+            prev_change_pct = None
+
+        concept_names = stock_concept_idx.get(ts_code, [])
+        mv = ma5_map.get(ts_code) if ma5_map else None
+        try:
+            ma5_f = float(mv) if mv is not None else None
+        except (TypeError, ValueError):
+            ma5_f = None
+        all_rows.append({
+            "ts_code": ts_code,
+            "name": name_map.get(ts_code, ""),
+            "amount": amount,
+            "amount_display": format_amount(amount),
+            "amount_change": amount_change_display,
+            "change_pct": round(change_pct, 2),
+            "change_price": round(change_price, 2),
+            "price": price,
+            "pre_close": pre_close,
+            "vol": int(vol) if vol > 0 else 0,
+            "prev_change_pct": round(prev_change_pct, 2) if prev_change_pct is not None else None,
+            "latest_price_display": f"{price:.2f}" if price is not None else "--",
+            "ma5": ma5_f,
+            "ma5_display": f"{ma5_f:.2f}" if ma5_f is not None else "--",
+            "concept_names": concept_names,
+            "concept_count": len(concept_names),
+            "concept_preview": format_concept_preview(concept_names),
+        })
+
+    all_rows.sort(key=lambda x: x["change_pct"], reverse=True)
+    return all_rows
 
 
 @app.route("/api/board_stocks/<date_str>/<board_name>")
 def api_board_stocks(date_str, board_name):
-    """获取指定板块的个股详情"""
+    """获取指定板块的个股详情（默认不拉网络五日线，优先本地缓存秒开）"""
     try:
         page = int(request.args.get("page", 1))
         page_size = int(request.args.get("page_size", 0))  # 默认0=返回全部
+        refresh = str(request.args.get("refresh", "")).strip().lower() in ("1", "true", "yes")
+        ma5_fill = _resolve_board_stocks_ma5_fill()
 
         category = _normalize_board_category_arg(request.args.get("category"))
         board_map = load_board_map_for_category(category)
         if not board_map or board_name not in board_map:
             return jsonify({"success": False, "message": f"未找到板块: {board_name}"})
 
-        # 获取该板块的股票代码列表
         stock_codes = board_map.get(board_name, [])
         if not stock_codes:
             return jsonify({"success": False, "message": f"板块 {board_name} 无成分股"})
 
-        # 加载当天的竞价数据
+        if not refresh:
+            hit = _try_load_board_stocks_cache(date_str, category, board_name)
+            if hit is not None:
+                if ma5_fill == 0:
+                    out = dict(hit["payload"])
+                    out["from_cache"] = True
+                    out["cached_at"] = hit.get("cached_at")
+                    out["ma5_fill"] = 0
+                    return jsonify(out)
+                if ma5_fill > 0:
+                    from ma5_daily import get_ma5_map_progressive
+
+                    payload = dict(hit["payload"])
+                    rows = payload.get("data") or []
+                    codes = [str(r.get("ts_code", "")) for r in rows if r.get("ts_code")]
+                    ma5_map = get_ma5_map_progressive(codes, date_str, max_fill=ma5_fill)
+                    for r in rows:
+                        ts = str(r.get("ts_code", ""))
+                        mv = ma5_map.get(ts) if ma5_map else None
+                        try:
+                            ma5_f = float(mv) if mv is not None else None
+                        except (TypeError, ValueError):
+                            ma5_f = None
+                        r["ma5"] = ma5_f
+                        r["ma5_display"] = f"{ma5_f:.2f}" if ma5_f is not None else "--"
+                    payload["data"] = rows
+                    payload["ma5_fill"] = ma5_fill
+                    _save_board_stocks_cache(date_str, category, board_name, payload)
+                    out = dict(payload)
+                    out["from_cache"] = True
+                    out["cached_at"] = hit.get("cached_at")
+                    out["ma5_partial"] = True
+                    return jsonify(out)
+
         auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
         if not auction_csv.exists():
             return jsonify({"success": False, "message": f"未找到 {date_str} 的竞价数据"})
 
         import pandas as pd
-        auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
 
-        # 过滤出该板块的个股
-        board_stocks = auction_df[auction_df["ts_code"].isin(stock_codes)]
+        auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
+        code_set = {str(c) for c in stock_codes}
+        board_stocks = auction_df[auction_df["ts_code"].astype(str).isin(code_set)]
 
         if board_stocks.empty:
             return jsonify({"success": False, "message": "无个股数据"})
 
-        from ma5_daily import get_ma5_map_progressive
-
-        ma5_map = get_ma5_map_progressive(
-            board_stocks["ts_code"].astype(str).unique().tolist(),
-            date_str,
-        )
-
-        # 预加载股票名称映射
         name_map = get_stock_name_map()
-
-        # 计算前一天的数据
-        prev_date = get_previous_trade_date(date_str)
-        prev_stock_data = {}
-        if prev_date:
-            prev_auction_csv = AUCTION_DIR / f"auction_{prev_date}.csv"
-            if prev_auction_csv.exists():
-                prev_df = pd.read_csv(prev_auction_csv, encoding="utf-8-sig")
-                for idx, row in prev_df.iterrows():
-                    prev_stock_data[row["ts_code"]] = {
-                        "amount": _safe_float(row["amount"]),
-                        "price": _safe_float(row["price"]),
-                        "pre_close": _safe_float(row["pre_close"]),
-                    }
-
         idx_map = load_concept_board_map() or board_map
-        stock_concept_idx = build_stock_concept_index(idx_map)
+        stock_concept_idx = build_stock_concept_index_for_codes(idx_map, code_set)
 
-        # 构建返回数据
-        all_rows = []
-        for idx, row in board_stocks.iterrows():
-            ts_code = str(row["ts_code"])
-            amount = _safe_float(row["amount"])
-            price = _safe_float(row["price"])
-            pre_close = _safe_float(row["pre_close"])
-            vol = _safe_float(row.get("vol", 0))
+        all_rows = _build_board_stock_rows(
+            board_stocks, date_str, ma5_fill, name_map, stock_concept_idx
+        )
+        prev_date = get_previous_trade_date(date_str)
 
-            # 计算涨跌幅
-            if pre_close != 0:
-                change_pct = (price - pre_close) / pre_close * 100
-                change_price = price - pre_close
-            else:
-                change_pct = 0
-                change_price = 0
-
-            # 对比前一天
-            prev_info = prev_stock_data.get(ts_code, None)
-            if prev_info:
-                amount_change = amount - prev_info["amount"]
-                amount_change_display = format_amount(abs(amount_change))
-                if amount_change > 0:
-                    amount_change_display = f"+{amount_change_display}"
-                elif amount_change < 0:
-                    amount_change_display = f"-{amount_change_display}"
-                else:
-                    amount_change_display = "0"
-
-                # 前一天涨跌幅
-                prev_pre_close = prev_info["pre_close"]
-                prev_price = prev_info["price"]
-                if prev_pre_close != 0:
-                    prev_change_pct = (prev_price - prev_pre_close) / prev_pre_close * 100
-                else:
-                    prev_change_pct = 0
-            else:
-                amount_change = 0
-                amount_change_display = "--"
-                prev_change_pct = None
-
-            concept_names = stock_concept_idx.get(ts_code, [])
-            mv = ma5_map.get(ts_code) if ma5_map else None
-            try:
-                ma5_f = float(mv) if mv is not None else None
-            except (TypeError, ValueError):
-                ma5_f = None
-            all_rows.append({
-                "ts_code": ts_code,
-                "name": name_map.get(ts_code, ""),
-                "amount": amount,
-                "amount_display": format_amount(amount),
-                "amount_change": amount_change_display,
-                "change_pct": round(change_pct, 2),
-                "change_price": round(change_price, 2),
-                "price": price,
-                "pre_close": pre_close,
-                "vol": int(vol) if vol > 0 else 0,
-                "prev_change_pct": round(prev_change_pct, 2) if prev_change_pct is not None else None,
-                "latest_price_display": f"{price:.2f}" if price is not None else "--",
-                "ma5": ma5_f,
-                "ma5_display": f"{ma5_f:.2f}" if ma5_f is not None else "--",
-                "concept_names": concept_names,
-                "concept_count": len(concept_names),
-                "concept_preview": format_concept_preview(concept_names),
-            })
-
-        # 按涨跌幅从高到低排序
-        all_rows.sort(key=lambda x: x["change_pct"], reverse=True)
-
-        # 分页（page_size=0 返回全部）
         total = len(all_rows)
         if page_size > 0:
             start = (page - 1) * page_size
@@ -685,7 +909,7 @@ def api_board_stocks(date_str, board_name):
         else:
             paged_rows = all_rows
 
-        return jsonify({
+        payload = {
             "success": True,
             "date": date_str,
             "board_name": board_name,
@@ -696,7 +920,13 @@ def api_board_stocks(date_str, board_name):
             "page_size": page_size,
             "total_pages": (total + page_size - 1) // page_size if page_size > 0 else 1,
             "data": paged_rows,
-        })
+            "ma5_fill": ma5_fill,
+        }
+        _save_board_stocks_cache(date_str, category, board_name, payload)
+
+        out = dict(payload)
+        out["from_cache"] = False
+        return jsonify(out)
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
@@ -1167,11 +1397,121 @@ def _save_watchlist_data_cache(date_str: str, wl_hash: str, payload: dict) -> No
     path.write_text(json.dumps(blob, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-@app.route("/api/watchlist/data")
-def api_watchlist_data():
-    """获取关注板块在指定日期的竞价数据（按每条关注的分类取汇总）"""
+def _watchlist_group_by_category(watchlist: list) -> dict:
+    """{category: [板块名称, ...]}"""
+    by_cat: dict = {}
+    for entry in watchlist:
+        if not isinstance(entry, dict):
+            continue
+        nm = str(entry.get("name", "")).strip()
+        if not nm:
+            continue
+        cat = _normalize_board_category_arg(entry.get("category"))
+        by_cat.setdefault(cat, []).append(nm)
+    return by_cat
+
+
+def _watchlist_rows_from_summary(date_str: str, watchlist: list) -> list:
+    """从本地板块汇总 CSV 提取关注行（不拉全市场 MA5、不遍历全部板块）。"""
+    prev_date = get_previous_trade_date(date_str)
+    rows_out = []
+    for cat, names in _watchlist_group_by_category(watchlist).items():
+        sp = _summary_csv_path_for_category(date_str, cat)
+        if not sp:
+            continue
+        summary_df = load_summary_csv(sp)
+        if summary_df is None or summary_df.empty or "板块名称" not in summary_df.columns:
+            continue
+        name_set = {str(n) for n in names}
+        matched = summary_df[summary_df["板块名称"].astype(str).isin(name_set)]
+        if matched.empty:
+            continue
+        for r in build_board_rows(matched, prev_date, cat):
+            r["board_category"] = cat
+            rows_out.append(r)
+    rows_out.sort(key=lambda x: x["amount"], reverse=True)
+    return rows_out
+
+
+def _watchlist_rows_from_auction(date_str: str, entries: list) -> list:
+    """无汇总 CSV 时：仅对指定关注板块做竞价聚合；MA5 仅拉关注成分股。"""
     import pandas as pd
 
+    if not entries:
+        return []
+
+    auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
+    if not auction_csv.exists():
+        return []
+
+    try:
+        auction_df = pd.read_csv(auction_csv, encoding="utf-8-sig")
+    except Exception:
+        return []
+    if auction_df.empty:
+        return []
+
+    prev_date = get_previous_trade_date(date_str)
+    by_cat: dict = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        nm = str(entry.get("name", "")).strip()
+        if not nm:
+            continue
+        cat = _normalize_board_category_arg(entry.get("category"))
+        by_cat.setdefault(cat, []).append(nm)
+
+    all_codes: set = set()
+    board_maps: dict = {}
+    for cat, names in by_cat.items():
+        bm = load_board_map_for_category(cat)
+        if not bm:
+            continue
+        board_maps[cat] = bm
+        for nm in names:
+            all_codes.update(str(c) for c in bm.get(nm, []) if c)
+
+    ma5_map = None
+    if all_codes:
+        try:
+            from config import MA5_BOARD_STOCKS_MAX_FILL
+            from ma5_daily import get_ma5_map_progressive
+
+            cap = len(all_codes)
+            if MA5_BOARD_STOCKS_MAX_FILL is not None:
+                cap = min(cap, int(MA5_BOARD_STOCKS_MAX_FILL))
+            ma5_map = get_ma5_map_progressive(list(all_codes), date_str, max_fill=cap)
+        except Exception:
+            ma5_map = None
+
+    rows_out = []
+    for cat, names in by_cat.items():
+        bm = board_maps.get(cat)
+        if not bm:
+            continue
+        subset = {n: bm[n] for n in names if n in bm}
+        if not subset:
+            continue
+        try:
+            summary_df = aggregate_board_amount(
+                auction_df, subset, FOCUS_BOARDS, ma5_map=ma5_map
+            )
+        except Exception:
+            continue
+        if summary_df is None or summary_df.empty:
+            continue
+        for r in build_board_rows(summary_df, prev_date, cat):
+            r["board_category"] = cat
+            rows_out.append(r)
+
+    rows_out.sort(key=lambda x: x["amount"], reverse=True)
+    return rows_out
+
+
+@app.route("/api/watchlist/data")
+def api_watchlist_data():
+    """获取关注板块在指定日期的竞价数据（优先读汇总 CSV，毫秒级）"""
     date_str = request.args.get("date", "")
     if not date_str:
         return jsonify({"success": False, "message": "请指定日期"})
@@ -1192,58 +1532,25 @@ def api_watchlist_data():
             out["cached_at"] = cached.get("cached_at")
             return jsonify(out)
 
-    auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
-    has_any = auction_csv.exists() or bool(_summary_csv_path_for_category(date_str, "concept")) or bool(_summary_csv_path_for_category(date_str, "industry"))
+    has_any = bool(_summary_csv_path_for_category(date_str, "concept")) or bool(
+        _summary_csv_path_for_category(date_str, "industry")
+    )
     if not has_any and not (SUMMARY_DIR / f"board_auction_{date_str}.csv").exists():
-        return jsonify({"success": False, "message": f"未找到 {date_str} 的数据"})
+        auction_csv = AUCTION_DIR / f"auction_{date_str}.csv"
+        if not auction_csv.exists():
+            return jsonify({"success": False, "message": f"未找到 {date_str} 的数据"})
 
     prev_date = get_previous_trade_date(date_str)
-    rows_out = []
+    rows_out = _watchlist_rows_from_summary(date_str, watchlist)
 
-    auction_df_cached = None
-    ma5_map_shared = None
-    if auction_csv.exists():
-        try:
-            auction_df_cached = pd.read_csv(auction_csv, encoding="utf-8-sig")
-            from ma5_daily import get_ma5_map_progressive
-
-            ma5_map_shared = get_ma5_map_progressive(
-                auction_df_cached["ts_code"].astype(str).unique().tolist(),
-                date_str,
-            )
-        except Exception:
-            auction_df_cached = None
-            ma5_map_shared = None
-
-    for entry in watchlist:
-        name = entry["name"]
-        cat = _normalize_board_category_arg(entry.get("category"))
-        board_map = load_board_map_for_category(cat)
-        if not board_map or name not in board_map:
-            continue
-        summary_df = None
-        if auction_df_cached is not None:
-            try:
-                summary_df = aggregate_board_amount(
-                    auction_df_cached, board_map, FOCUS_BOARDS, ma5_map=ma5_map_shared
-                )
-            except Exception:
-                summary_df = None
-        if summary_df is None or summary_df.empty:
-            sp = _summary_csv_path_for_category(date_str, cat)
-            if sp:
-                summary_df = load_summary_csv(sp)
-        if summary_df is None or summary_df.empty:
-            continue
-        one = summary_df[summary_df["板块名称"] == name]
-        if one.empty:
-            continue
-        br = build_board_rows(one, prev_date, cat)
-        for r in br:
-            r["board_category"] = cat
-        rows_out.extend(br)
-
-    rows_out.sort(key=lambda x: x["amount"], reverse=True)
+    found_names = {r["name"] for r in rows_out}
+    missing_entries = [
+        e for e in watchlist
+        if isinstance(e, dict) and str(e.get("name", "")).strip() not in found_names
+    ]
+    if missing_entries:
+        rows_out.extend(_watchlist_rows_from_auction(date_str, missing_entries))
+        rows_out.sort(key=lambda x: x["amount"], reverse=True)
 
     payload = {
         "success": True,

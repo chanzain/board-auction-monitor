@@ -19,6 +19,13 @@ REQUEST_INTERVAL = 0.5
 # 单次 Web/API 请求最多新拉取多少只股票的日线 MA5（其余写入缓存后下次继续补全）
 MA5_MAX_FILL_PER_REQUEST = 150
 
+# 板块成分股弹窗：默认仅读本地 MA5 缓存（0=不发起网络请求，秒开列表）。
+# 前端可在后台再请求 ma5_fill=N 渐进补全；单次网络补全上限见 MA5_BOARD_STOCKS_MAX_FILL。
+MA5_BOARD_STOCKS_DEFAULT_FILL = 0
+
+# 成分股弹窗后台补全五日线时，单次最多新拉取多少只（其余下次继续）
+MA5_BOARD_STOCKS_MAX_FILL = 80
+
 # 并发请求数
 MAX_CONCURRENT = 3
 
